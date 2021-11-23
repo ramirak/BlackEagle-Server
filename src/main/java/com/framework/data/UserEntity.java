@@ -17,7 +17,6 @@ import javax.persistence.Table;
 public class UserEntity {
 	@Id
 	private String uid;
-	private String username;
 	private String role;
 	private int deviceCount;
 	private boolean active;
@@ -44,14 +43,6 @@ public class UserEntity {
 
 	public void setUid(String uid) {
 		this.uid = uid;
-	}
-
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
 	}
 
 	public String getRole() {
@@ -103,6 +94,7 @@ public class UserEntity {
 	}
 
 	public void addPassword(PasswordEntity pe) {
+		// TODO remove oldest password if more than max history value
 		this.passwords.add(pe);
 		pe.setOwner(this);
 	}

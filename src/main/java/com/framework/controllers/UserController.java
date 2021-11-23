@@ -38,14 +38,7 @@ public class UserController {
 		return userService.updateUser(newDetails);
 	}
 	
-	@RequestMapping(path = "/users/login", 
-			method = RequestMethod.POST, 
-			produces = MediaType.APPLICATION_JSON_VALUE, 
-			consumes = MediaType.APPLICATION_JSON_VALUE)
-	public UserBoundary login(@RequestBody UserBoundary userDetails) {
-		return userService.login(userDetails.getUserId().getUID(), userDetails.getUserId().getPasswordBoundary().getPassword());
-	}
-
+	
 
 	@RequestMapping(path = "/users/login/2FA", 
 			method = RequestMethod.POST, 

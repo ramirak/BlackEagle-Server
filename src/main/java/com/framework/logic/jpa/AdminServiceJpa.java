@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import com.framework.boundaries.UserBoundary;
@@ -16,13 +18,19 @@ import com.framework.datatypes.UserRole;
 import com.framework.exceptions.NotFoundException;
 import com.framework.logic.AdminService;
 import com.framework.logic.converters.UserEntityConverterImplementation;
+import com.framework.utilities.Utils;
 
 @Service
 public class AdminServiceJpa implements AdminService {
 	private UserDao userDao;
 	private PasswordDao passwordDao;
 	private UserEntityConverterImplementation ueConverter;
-
+	private Utils utils;
+	
+	@Autowired
+	public void setUtils(Utils utils) {
+		this.utils = utils;
+	}
 	@Autowired
 	public void setUserDao(UserDao userDao) {
 		this.userDao = userDao;
@@ -41,7 +49,8 @@ public class AdminServiceJpa implements AdminService {
 	@Override
 	public UserBoundary getSpecificUser(String email) {
 		// TODO Check if current role is Admin
-
+		utils.assertAuthorizedOperation("ADMIN");
+		
 		Optional<UserEntity> existingUser = userDao.findById(email);
 		if (existingUser.isPresent())
 			return ueConverter.toBoundary(existingUser.get());
@@ -52,7 +61,7 @@ public class AdminServiceJpa implements AdminService {
 	@Override
 	public List<UserBoundary> getAllUsers(int page, int size) {
 		// TODO Check if current role is Admin
-
+		utils.assertAuthorizedOperation("ADMIN");
 		return this.userDao
 				.findAllByActiveAndRole(true, UserRole.PLAYER, PageRequest.of(page, size, Direction.DESC, "username"))
 				.stream().map(this.ueConverter::toBoundary).collect(Collectors.toList());
@@ -61,7 +70,8 @@ public class AdminServiceJpa implements AdminService {
 	@Override
 	public UserBoundary resetPassword(String email) {
 		// TODO Check if current role is Admin
-
+		utils.assertAuthorizedOperation("ADMIN");
+		
 		Optional<UserEntity> existingUser = userDao.findById(email);
 		if (existingUser.isPresent()) {
 			// TODO Send mail with reset link
@@ -72,7 +82,8 @@ public class AdminServiceJpa implements AdminService {
 	@Override
 	public UserBoundary deleteAccount(String email) {
 		// TODO Check if current role is Admin
-
+		utils.assertAuthorizedOperation("ADMIN");
+		
 		Optional<UserEntity> existingUser = userDao.findById(email);
 		if (existingUser.isPresent()) {
 			passwordDao.deleteById(email);

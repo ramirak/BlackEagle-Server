@@ -147,12 +147,17 @@ public class DataServiceJpa implements DataService {
 		utils.assertNull(dataId);
 
 		String currentlyLoggedInUID = "";
+		
+		// Get only users of role DEVICE
 		UserEntity existingDevice = userDao.findById(deviceId)
 				.orElseThrow(() -> new NotFoundException("Device not found: " + deviceId));
 
+		// check if device owned by the authenticated user
 		utils.assertOwnership(existingDevice.getDeviceOwner().getUid(), currentlyLoggedInUID);
 
 		Optional<DataEntity> existingData = this.dataDao.findById(dataId);
+		// Check if data owned by the device id
+		
 		if (!existingData.isPresent())
 			throw new NotFoundException("Could not find data by id " + dataId);
 

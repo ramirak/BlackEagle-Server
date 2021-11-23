@@ -30,7 +30,7 @@ public class OTPService {
 	
 	public int generateOTP(String uid) {
 		SecureRandom rand = new SecureRandom();
-		int otp = 1000000 + rand.nextInt(9000000);
+		int otp = 1000000 + rand.nextInt(8999999); 
 		this.otpCache.asMap().put(uid, otp);
 		return otp;
 	}

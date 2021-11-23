@@ -28,7 +28,6 @@ public class UserEntityConverterImplementation implements EntityConverter<UserEn
 		PasswordBoundary pb = peConverter.toBoundary(entity.getActivePasswordEntity());
 		UserIdBoundary uidBoundary = new UserIdBoundary(entity.getUid(), pb);
 		userBoundary.setUserId(uidBoundary);
-		userBoundary.setUsername(entity.getUsername());
 		return userBoundary;
 	}
 
@@ -39,7 +38,6 @@ public class UserEntityConverterImplementation implements EntityConverter<UserEn
 		userEntity.setDeviceCount(boundary.getDeviceCount());
 		userEntity.setRole(boundary.getRole().name());
 		userEntity.setUid(boundary.getUserId().getUID());
-		userEntity.setUsername(boundary.getUsername());
 		return userEntity;
 	}
 

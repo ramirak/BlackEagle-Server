@@ -1,8 +1,14 @@
 package com.framework.logic.jpa;
 
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -12,14 +18,16 @@ import com.framework.data.PasswordEntity;
 import com.framework.data.UserEntity;
 import com.framework.data.dao.PasswordDao;
 import com.framework.data.dao.UserDao;
+import com.framework.datatypes.UserRole;
 import com.framework.exceptions.AlreadyExistingException;
-import com.framework.exceptions.ForbiddenException;
 import com.framework.exceptions.NotFoundException;
+import com.framework.exceptions.UnauthorizedRequest;
 import com.framework.logic.UserService;
 import com.framework.logic.converters.PasswordEntityConverterImlementation;
 import com.framework.logic.converters.UserEntityConverterImplementation;
 import com.framework.security.services.OTPService;
 import com.framework.security.services.PasswordUtils;
+import com.framework.utilities.Utils;
 
 @Service
 public class UserServiceJpa implements UserService {
@@ -30,6 +38,7 @@ public class UserServiceJpa implements UserService {
 	private PasswordEncoder passwordEncoder;
 	private PasswordUtils passwordUtils;
 	private OTPService otpService;
+	private Utils utils;
 
 	@Autowired
 	public void setOtpService(OTPService otpService) {
@@ -66,8 +75,21 @@ public class UserServiceJpa implements UserService {
 		this.ueConverter = ueConverter;
 	}
 
+	@Autowired
+	public void setUtils(Utils utils) {
+		this.utils = utils;
+	}
+
 	@Override
 	public UserBoundary register(UserBoundary user) {
+		utils.assertNull(user);
+		utils.assertNull(user.getUserId());
+		utils.assertEmptyString(user.getUserId().getUID());
+		utils.assertNull(user.getUserId().getPasswordBoundary());
+		utils.assertEmptyString(user.getUserId().getPasswordBoundary().getPassword());
+		utils.assertEmptyString(user.getUserId().getPasswordBoundary().getHint());
+
+		user.setRole(UserRole.PLAYER);
 		// Hash the password before converting to entity
 		String hashedPass = passwordEncoder.encode(user.getUserId().getPasswordBoundary().getPassword());
 		user.getUserId().getPasswordBoundary().setPassword(hashedPass);
@@ -84,17 +106,6 @@ public class UserServiceJpa implements UserService {
 	}
 
 	@Override
-	public UserBoundary login(String userEmail, String password) {
-		Optional<UserEntity> exitingUser = userDao.findById(userEmail);
-		if (!exitingUser.isPresent())
-			throw new NotFoundException("User does not exists in the database");
-
-		UserEntity ue = exitingUser.get();
-
-		return null;
-	}
-
-	@Override
 	public UserBoundary login2FA(String oneTimeKey) {
 		// TODO Auto-generated method stub
 		return null;
@@ -103,41 +114,46 @@ public class UserServiceJpa implements UserService {
 	@Override
 	public UserBoundary updateUser(UserBoundary update) {
 		// TODO get currently logged-in password details
-		String password = " " ;
-		
-		// Find the corresponding user in the database
-		Optional<UserEntity> existingUser = userDao.findById(update.getUserId().getUID());
-		if (!existingUser.isPresent())
-			throw new NotFoundException("User does not exists in the database");
+		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
+		String authenticatedPWD = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getPassword();
+		boolean dirty = false;
 
-		UserEntity existingEntity = existingUser.get();
+		utils.assertOwnership(authenticatedUser, update.getUserId().getUID());
+
+		// Find the corresponding user in the database
+		UserEntity existingEntity = userDao.findById(update.getUserId().getUID())
+				.orElseThrow(() -> new NotFoundException("User not found: "));
+
 		PasswordBoundary updatedPassBoundary = update.getUserId().getPasswordBoundary();
+		String newPassword = updatedPassBoundary.getPassword();
 
 		// The user requests the deactivation of his account without deleting
-		if (update.getActive() != null)
+		if (update.getActive() != null) {
 			existingEntity.setActive(update.getActive());
-		if (update.getUsername() != null)
-			existingEntity.setUsername(update.getUsername());
-		
+			dirty = true;
+		}
 		// The user requests to change his password
-		if (updatedPassBoundary != null && updatedPassBoundary.getPassword() != null) {
-			// TODO Check authentication details / the user is required to enter is old
+		if (updatedPassBoundary != null && newPassword != null && updatedPassBoundary.getHint() != null) {
+			utils.assertEmptyString(updatedPassBoundary.getHint());
+			// TODO Check authentication details / the user is required to enter his old
 			// password ..
-
-			if (!existingEntity.isPasswordInHistory(passwordEncoder.encode(password))) {
+			if (!existingEntity.isPasswordInHistory(passwordEncoder.encode(newPassword))) {
 				// Check if the new password is a valid password
-				if (passwordUtils.checkPassword(password)) {
+				if (passwordUtils.checkPassword(newPassword)) {
 					// If all the checks are passed, proceed to updating the entity with the new
 					// password
+					updatedPassBoundary.setPassword(passwordEncoder.encode(newPassword));
 					PasswordEntity newPassEntity = peConverter.fromBoundary(updatedPassBoundary);
 					existingEntity.addPassword(newPassEntity);
 					passwordDao.save(newPassEntity);
-
 					// TODO delete old passwords
+					dirty = true;
 				}
 			}
+
 		}
-		userDao.save(existingEntity);
+		if (dirty)
+			userDao.save(existingEntity);
 		return ueConverter.toBoundary(existingEntity);
 
 	}
@@ -149,28 +165,47 @@ public class UserServiceJpa implements UserService {
 	}
 
 	@Override
-	public UserBoundary deleteAccount(String oneTimeKey) {
-
-		String currentlyLoggedInUID = "";
-		Optional<UserEntity> existingUser = userDao.findById(currentlyLoggedInUID);
+	public UserBoundary deleteAccount(String oneTimeKey) {	
+		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
+		Optional<UserEntity> existingUser = userDao.findById(authenticatedUser);
 		if (!existingUser.isPresent())
 			throw new NotFoundException("User does not exists in the database");
 
 		try {
 			// Compare user input to the generated OTP value and delete if equals.
-			if (otpService.getOTP(currentlyLoggedInUID) == Integer.parseInt(oneTimeKey)) {
+			if (otpService.getOTP(authenticatedUser) == Integer.parseInt(oneTimeKey)) {
 				// TODO delete from dataDao
 				// TODO delete owned devices
-				passwordDao.deleteById(currentlyLoggedInUID);
-				userDao.deleteById(currentlyLoggedInUID);
+				passwordDao.deleteById(authenticatedUser);
+				userDao.deleteById(authenticatedUser);
 			} else
-				throw new ForbiddenException("One time key does not match user's input");
+				throw new UnauthorizedRequest("One time key does not match user's input");
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
 		} catch (ExecutionException e) {
 			e.printStackTrace();
 		}
 		return ueConverter.toBoundary(existingUser.get());
+	}
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		Optional<UserEntity> exitingUser = userDao.findById(username);
+		if (!exitingUser.isPresent())
+			throw new NotFoundException("User does not exists in the database");
+		UserEntity ue = exitingUser.get();
+		
+		ArrayList<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+
+		// Only one role per user, set current saved role
+		grantedAuthorities.add(new SimpleGrantedAuthority(ue.getRole()));
+
+		/*
+		 * ..Or set multiple roles per user for (UserRole role : UserRole.values()) {
+		 * grantedAuthorities.add(new SimpleGrantedAuthority(role.name())); }
+		 */
+		return new org.springframework.security.core.userdetails.User(ue.getUid(),
+				ue.getActivePasswordEntity().getPassword(), grantedAuthorities);
 	}
 
 }
