@@ -5,15 +5,15 @@ import java.util.List;
 import com.framework.boundaries.UserBoundary;
 
 public interface DeviceService {
-	public UserBoundary addDevice(String userId, UserBoundary device);
+	public UserBoundary addDevice(UserBoundary device);
 
-	public UserBoundary updateDevice(UserBoundary device); 
+	public UserBoundary updateDevice(UserBoundary update); 
 	
-	public UserBoundary deleteDevice(String userId, String deviceID);
+	public UserBoundary deleteDevice(String deviceId);
 	
-	public UserBoundary getSpecificDevice(String deviceID); 
+	public UserBoundary getSpecificDevice(String deviceId); 
 	
-	public List<UserBoundary> getAllDevices(); 
+	public List<UserBoundary> getAllDevices(String userId, int page, int size);
 
 
 	

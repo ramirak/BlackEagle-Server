@@ -150,7 +150,6 @@ public class UserServiceJpa implements UserService {
 					dirty = true;
 				}
 			}
-
 		}
 		if (dirty)
 			userDao.save(existingEntity);

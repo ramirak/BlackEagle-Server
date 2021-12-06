@@ -120,6 +120,12 @@ public class UserEntity {
 		dataEntity.setDataOwner(this);	
 	}
 	
+	public void addDeviceToUser(UserEntity deviceEntity) {
+		this.devices.add(deviceEntity);
+		deviceEntity.setDeviceOwner(this);
+		deviceCount++;
+	}
+	
 	@Override
 	public int hashCode() {
 		return Objects.hash(deviceCount, devices, uid, passwords, role, userData);

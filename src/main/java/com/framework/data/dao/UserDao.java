@@ -1,6 +1,7 @@
 package com.framework.data.dao;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.PagingAndSortingRepository;
@@ -10,5 +11,17 @@ import com.framework.data.UserEntity;
 import com.framework.datatypes.UserRole;
 
 public interface UserDao extends PagingAndSortingRepository<UserEntity, String> {
-	public List<UserEntity> findAllByActiveAndRole(@Param("active") boolean active, UserRole role, Pageable pageable);
+	
+	public List<UserEntity> findAllByActiveAndRole(
+			@Param("active") boolean active,
+			UserRole role,
+			Pageable pageable);
+
+	public Optional<UserEntity> findByIdAndRole(
+			@Param("id") String id,
+			String role);
+	
+	public List<UserEntity> findAllByActive(
+			@Param("active") boolean active,
+			Pageable pageable);
 }

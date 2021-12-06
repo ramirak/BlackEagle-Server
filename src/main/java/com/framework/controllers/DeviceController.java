@@ -23,7 +23,7 @@ public class DeviceController {
 			produces = MediaType.APPLICATION_JSON_VALUE,
 			consumes = MediaType.APPLICATION_JSON_VALUE)
 	public UserBoundary addDevice(@RequestBody UserBoundary device, @PathVariable("userId") String userId) {
-		return deviceService.addDevice(userId, device);
+		return deviceService.addDevice(device);
 	}
 
 	@RequestMapping(path = "/device/update",
@@ -37,6 +37,6 @@ public class DeviceController {
 	@RequestMapping(path = "/device/delete/{userId}/{deviceId}",
 			method = RequestMethod.DELETE)
 	public UserBoundary deleteDevice(@PathVariable("userId") String userId, @PathVariable String deviceId) {
-		return deviceService.deleteDevice(userId, deviceId);
+		return deviceService.deleteDevice(deviceId);
 	}
 }

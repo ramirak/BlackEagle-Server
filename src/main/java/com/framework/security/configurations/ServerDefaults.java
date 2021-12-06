@@ -22,6 +22,7 @@ public interface ServerDefaults extends Times{
 	OTP_EXPIRED_IN = 2 * minute,
 	MAX_CONCURRENT_SESSIONS = 4,
 	MAX_STORAGE_PER_USER = 2,
+	MAX_NUM_DEVICES = 5,
 	MAX_CACHE_SIZE = 1000000;
 	
 	public final boolean 
