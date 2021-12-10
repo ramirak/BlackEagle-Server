@@ -99,6 +99,8 @@ public class UserEntity {
 	}
 
 	public void addPassword(PasswordEntity pe) {
+		getActivePasswordEntity().setActive(false);
+		pe.setActive(true);
 		this.passwords.add(pe);
 		pe.setOwner(this);
 	}
