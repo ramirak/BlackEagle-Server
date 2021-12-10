@@ -1,8 +1,10 @@
 package com.framework.logic.jpa;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -11,6 +13,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.framework.boundaries.PasswordBoundary;
 import com.framework.boundaries.UserBoundary;
@@ -40,6 +44,14 @@ public class UserServiceJpa implements UserService {
 	private OTPService otpService;
 	private Utils utils;
 
+	public UserServiceJpa() {
+	}
+
+	@Autowired
+	public void setUserDao(UserDao userDao) {
+		this.userDao = userDao;
+	}
+
 	@Autowired
 	public void setOtpService(OTPService otpService) {
 		this.otpService = otpService;
@@ -61,11 +73,6 @@ public class UserServiceJpa implements UserService {
 	}
 
 	@Autowired
-	public void setUserDao(UserDao userDao) {
-		this.userDao = userDao;
-	}
-
-	@Autowired
 	public void setPeConverter(PasswordEntityConverterImlementation peConverter) {
 		this.peConverter = peConverter;
 	}
@@ -81,6 +88,7 @@ public class UserServiceJpa implements UserService {
 	}
 
 	@Override
+	@Transactional
 	public UserBoundary register(UserBoundary user) {
 		utils.assertNull(user);
 		utils.assertNull(user.getUserId());
@@ -90,6 +98,7 @@ public class UserServiceJpa implements UserService {
 		utils.assertEmptyString(user.getUserId().getPasswordBoundary().getHint());
 
 		user.setRole(UserRole.PLAYER);
+		user.setActive(true);
 		// Hash the password before converting to entity
 		String hashedPass = passwordEncoder.encode(user.getUserId().getPasswordBoundary().getPassword());
 		user.getUserId().getPasswordBoundary().setPassword(hashedPass);
@@ -98,10 +107,14 @@ public class UserServiceJpa implements UserService {
 		Optional<UserEntity> exitingUser = userDao.findById(user.getUserId().getUID());
 		if (exitingUser.isPresent())
 			throw new AlreadyExistingException("uid already in the database");
+		user.getUserId().getPasswordBoundary().setCreationTime(new Date());
 		// Convert and save the password entity
 		PasswordEntity pe = peConverter.fromBoundary(user.getUserId().getPasswordBoundary());
+
+		ue.addPassword(pe);
 		userDao.save(ue);
 		passwordDao.save(pe);
+
 		return user;
 	}
 
@@ -114,8 +127,11 @@ public class UserServiceJpa implements UserService {
 	@Override
 	public UserBoundary updateUser(UserBoundary update) {
 		// TODO get currently logged-in password details
-		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
-		String authenticatedPWD = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getPassword();
+		String authenticatedUser = SecurityContextHolder.getContext().getAuthentication().getName();
+		// String authenticatedPWD =
+		// SecurityContextHolder.getContext().getAuthentication().getCredentials().toString();//((UserDetails)
+		// SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getPassword();
+
 		boolean dirty = false;
 
 		utils.assertOwnership(authenticatedUser, update.getUserId().getUID());
@@ -136,20 +152,23 @@ public class UserServiceJpa implements UserService {
 		if (updatedPassBoundary != null && newPassword != null && updatedPassBoundary.getHint() != null) {
 			utils.assertEmptyString(updatedPassBoundary.getHint());
 			// TODO Check authentication details / the user is required to enter his old
-			// password ..
-			if (!existingEntity.isPasswordInHistory(passwordEncoder.encode(newPassword))) {
+			if (!passwordEncoder.matches(update.getUserId().getPasswordBoundary().getOptionalPassword(),
+					existingEntity.getActivePasswordEntity().getPassword()))
+				throw new UnauthorizedRequest("Failed to verify old password");
+		//	if (!existingEntity.isPasswordInHistory(passwordEncoder.encode(newPassword))) {
 				// Check if the new password is a valid password
-				if (passwordUtils.checkPassword(newPassword)) {
+				//if (passwordUtils.checkPassword(newPassword)) {
 					// If all the checks are passed, proceed to updating the entity with the new
 					// password
 					updatedPassBoundary.setPassword(passwordEncoder.encode(newPassword));
+					updatedPassBoundary.setCreationTime(new Date());
 					PasswordEntity newPassEntity = peConverter.fromBoundary(updatedPassBoundary);
 					existingEntity.addPassword(newPassEntity);
 					passwordDao.save(newPassEntity);
 					// TODO delete old passwords
 					dirty = true;
-				}
-			}
+			//	}
+			//}
 		}
 		if (dirty)
 			userDao.save(existingEntity);
@@ -164,8 +183,9 @@ public class UserServiceJpa implements UserService {
 	}
 
 	@Override
-	public UserBoundary deleteAccount(String oneTimeKey) {	
-		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
+	public UserBoundary deleteAccount(String oneTimeKey) {
+		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.getUsername();
 		Optional<UserEntity> existingUser = userDao.findById(authenticatedUser);
 		if (!existingUser.isPresent())
 			throw new NotFoundException("User does not exists in the database");
@@ -188,12 +208,13 @@ public class UserServiceJpa implements UserService {
 	}
 
 	@Override
+	@Transactional 
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		Optional<UserEntity> exitingUser = userDao.findById(username);
 		if (!exitingUser.isPresent())
 			throw new NotFoundException("User does not exists in the database");
 		UserEntity ue = exitingUser.get();
-		
+
 		ArrayList<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 
 		// Only one role per user, set current saved role

@@ -1,6 +1,4 @@
-package com.framework.security.configurations;
-
-import com.framework.datatypes.Times;
+package com.framework.constants;
 
 public interface PasswordsDefaults extends Times {
 	/**Adjust default password configurations

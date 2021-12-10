@@ -3,7 +3,7 @@ package com.framework.boundaries;
 import java.util.Date;
 
 public class PasswordBoundary {
-	private String password;
+	private String password, optionalPassword;
 	private Date creationTime;
 	private Boolean active;
 	private String hint;
@@ -41,6 +41,14 @@ public class PasswordBoundary {
 
 	public void setHint(String hint) {
 		this.hint = hint;
+	}
+
+	public String getOptionalPassword() {
+		return optionalPassword;
+	}
+
+	public void setOptionalPassword(String optionalPassword) {
+		this.optionalPassword = optionalPassword;
 	}
 	
 	

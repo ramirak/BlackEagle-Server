@@ -1,5 +1,6 @@
 package com.framework.data;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -12,6 +13,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+
 @Entity
 @Table(name = "Users")
 public class UserEntity {
@@ -20,21 +22,24 @@ public class UserEntity {
 	private String role;
 	private int deviceCount;
 	private boolean active;
-	
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "user_id", nullable = false)
+
+	@ManyToOne 
+	@JoinColumn(name = "OwnerUid") 
 	private UserEntity deviceOwner;
 
-	@OneToMany(mappedBy = "deviceOwner", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "deviceOwner") 
 	private Set<UserEntity> devices;
 
-	@OneToMany(mappedBy = "dataOwner", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "dataOwner") 
 	private Set<DataEntity> userData;
 
-	@OneToMany(mappedBy = "passOwner", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "passOwner") 
 	private Set<PasswordEntity> passwords;
 
 	public UserEntity() {
+		this.passwords = new HashSet<>();
+		this.userData = new HashSet<>();
+		this.devices = new HashSet<>();
 	}
 
 	public String getUid() {
@@ -94,41 +99,40 @@ public class UserEntity {
 	}
 
 	public void addPassword(PasswordEntity pe) {
-		// TODO remove oldest password if more than max history value
 		this.passwords.add(pe);
 		pe.setOwner(this);
 	}
-	
+
 	public PasswordEntity getActivePasswordEntity() {
 		for (PasswordEntity pe : this.passwords) {
-			if(pe.getActive())
+			if (pe.getActive())
 				return pe;
 		}
 		return null;
 	}
-	
+
 	public boolean isPasswordInHistory(String hashedPass) {
 		for (PasswordEntity pe : this.passwords) {
-			if(pe.getPassword().equals(hashedPass))
+			if (pe.getPassword().equals(hashedPass))
 				return true;
 		}
 		return false;
 	}
-	
+
 	public void addDataToUser(DataEntity dataEntity) {
 		this.userData.add(dataEntity);
-		dataEntity.setDataOwner(this);	
+		dataEntity.setDataOwner(this);
 	}
-	
+
 	public void addDeviceToUser(UserEntity deviceEntity) {
 		this.devices.add(deviceEntity);
 		deviceEntity.setDeviceOwner(this);
 		deviceCount++;
 	}
-	
+
 	@Override
 	public int hashCode() {
-		return Objects.hash(deviceCount, devices, uid, passwords, role, userData);
+		return Objects.hash(active, deviceCount, deviceOwner, role, uid);
 	}
 
 	@Override
@@ -140,9 +144,10 @@ public class UserEntity {
 		if (getClass() != obj.getClass())
 			return false;
 		UserEntity other = (UserEntity) obj;
-		return deviceCount == other.deviceCount && Objects.equals(devices, other.devices)
-				&& Objects.equals(uid, other.uid) && Objects.equals(passwords, other.passwords)
-				&& Objects.equals(role, other.role) && Objects.equals(userData, other.userData);
+		return active == other.active && deviceCount == other.deviceCount
+				&& Objects.equals(deviceOwner, other.deviceOwner) && Objects.equals(devices, other.devices)
+				&& Objects.equals(passwords, other.passwords) && Objects.equals(role, other.role)
+				&& Objects.equals(uid, other.uid) && Objects.equals(userData, other.userData);
 	}
 
 	public boolean isActive() {

@@ -6,61 +6,79 @@ import java.util.Objects;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 @Entity
 @Table(name = "Passwords")
-public class PasswordEntity implements Serializable{
+public class PasswordEntity implements Serializable {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY) // Incremental id
+	private int id;
 
 	private static final long serialVersionUID = 1L;
 	private String password;
+	
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date creationTime;
 	private boolean active;
 	private String hint;
-	
-	@Id
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "user_id", nullable = false)
+
+	@ManyToOne
+	@JoinColumn(name = "pass_owner")
 	private UserEntity passOwner;
-	
+
 	public UserEntity getOwner() {
 		return passOwner;
 	}
+
 	public void setOwner(UserEntity passOwner) {
 		this.passOwner = passOwner;
 	}
+
 	public String getPassword() {
 		return password;
 	}
+
 	public void setPassword(String password) {
 		this.password = password;
 	}
+
 	public Date getCreationTime() {
 		return creationTime;
 	}
+
 	public void setCreationTime(Date creationTime) {
 		this.creationTime = creationTime;
 	}
+
 	public boolean getActive() {
 		return active;
 	}
+
 	public void setActive(boolean active) {
 		this.active = active;
 	}
-	@Override
-	public int hashCode() {
-		return Objects.hash(active, creationTime, passOwner, password);
-	}
+
 	public String getHint() {
 		return hint;
 	}
+
 	public void setHint(String hint) {
 		this.hint = hint;
 	}
-	
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(active, creationTime, hint, id, passOwner, password);
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -71,7 +89,9 @@ public class PasswordEntity implements Serializable{
 			return false;
 		PasswordEntity other = (PasswordEntity) obj;
 		return active == other.active && Objects.equals(creationTime, other.creationTime)
-				&& Objects.equals(passOwner, other.passOwner) && Objects.equals(password, other.password);
+				&& Objects.equals(hint, other.hint) && id == other.id && Objects.equals(passOwner, other.passOwner)
+				&& Objects.equals(password, other.password);
 	}
+
 
 }

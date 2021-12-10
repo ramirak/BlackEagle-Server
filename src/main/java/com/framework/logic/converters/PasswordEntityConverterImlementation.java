@@ -21,7 +21,7 @@ public class PasswordEntityConverterImlementation implements EntityConverter<Pas
 	@Override
 	public PasswordEntity fromBoundary(PasswordBoundary boundary) {
 		PasswordEntity pe = new PasswordEntity();
-		pe.setActive(boundary.getActive());
+		pe.setActive(boundary.getActive() != null ? boundary.getActive() : true);
 		pe.setCreationTime(boundary.getCreationTime());
 		pe.setHint(boundary.getHint());
 		pe.setPassword(boundary.getPassword());

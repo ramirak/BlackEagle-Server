@@ -1,6 +1,8 @@
 package com.framework.data;
 
 import java.util.Date;
+import java.util.Objects;
+
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
@@ -20,8 +22,8 @@ public class DataEntity {
 	private Date createdTimestamp;
 	private String dataAttributes;
 	
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "user_id", nullable = false)
+	@ManyToOne
+	@JoinColumn(name = "data_owner")
 	private UserEntity dataOwner;
 	
 	
@@ -62,12 +64,17 @@ public class DataEntity {
 		this.dataAttributes = dataAttributes;
 	}
 
+	public UserEntity getDataOwner() {
+		return dataOwner;
+	}
+
+	public void setDataOwner(UserEntity dataOwner) {
+		this.dataOwner = dataOwner;
+	}
+
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((dataId == null) ? 0 : dataId.hashCode());
-		return result;
+		return Objects.hash(createdTimestamp, dataId, dataOwner, dataType);
 	}
 
 	@Override
@@ -79,20 +86,11 @@ public class DataEntity {
 		if (getClass() != obj.getClass())
 			return false;
 		DataEntity other = (DataEntity) obj;
-		if (dataId == null) {
-			if (other.dataId != null)
-				return false;
-		} else if (!dataId.equals(other.dataId))
-			return false;
-		return true;
+		return Objects.equals(createdTimestamp, other.createdTimestamp)
+				&& Objects.equals(dataAttributes, other.dataAttributes) && Objects.equals(dataId, other.dataId)
+				&& Objects.equals(dataOwner, other.dataOwner) && Objects.equals(dataType, other.dataType);
 	}
-
-	public UserEntity getDataOwner() {
-		return dataOwner;
-	}
-
-	public void setDataOwner(UserEntity dataOwner) {
-		this.dataOwner = dataOwner;
-	}
+	
+	
 }
 

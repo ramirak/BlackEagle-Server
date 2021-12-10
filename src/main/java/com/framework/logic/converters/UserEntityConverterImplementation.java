@@ -34,8 +34,8 @@ public class UserEntityConverterImplementation implements EntityConverter<UserEn
 	@Override
 	public UserEntity fromBoundary(UserBoundary boundary) {
 		UserEntity userEntity = new UserEntity();
-		userEntity.setActive(boundary.getActive());
-		userEntity.setDeviceCount(boundary.getDeviceCount());
+		userEntity.setActive(boundary.getActive() != null ? boundary.getActive() : true);
+		userEntity.setDeviceCount(boundary.getDeviceCount() != null ? boundary.getDeviceCount() : 0);
 		userEntity.setRole(boundary.getRole().name());
 		userEntity.setUid(boundary.getUserId().getUID());
 		return userEntity;

@@ -26,11 +26,15 @@ public class AdminServiceJpa implements AdminService {
 	private PasswordDao passwordDao;
 	private UserEntityConverterImplementation ueConverter;
 	private Utils utils;
-	
+
+	public AdminServiceJpa() {
+	}
+
 	@Autowired
 	public void setUtils(Utils utils) {
 		this.utils = utils;
 	}
+
 	@Autowired
 	public void setUserDao(UserDao userDao) {
 		this.userDao = userDao;
@@ -50,7 +54,7 @@ public class AdminServiceJpa implements AdminService {
 	public UserBoundary getSpecificUser(String email) {
 		// TODO Check if current role is Admin
 		utils.assertAuthorizedOperation("ADMIN");
-		
+
 		Optional<UserEntity> existingUser = userDao.findById(email);
 		if (existingUser.isPresent())
 			return ueConverter.toBoundary(existingUser.get());
@@ -71,7 +75,7 @@ public class AdminServiceJpa implements AdminService {
 	public UserBoundary resetPassword(String email) {
 		// TODO Check if current role is Admin
 		utils.assertAuthorizedOperation("ADMIN");
-		
+
 		Optional<UserEntity> existingUser = userDao.findById(email);
 		if (existingUser.isPresent()) {
 			// TODO Send mail with reset link
@@ -83,7 +87,7 @@ public class AdminServiceJpa implements AdminService {
 	public UserBoundary deleteAccount(String email) {
 		// TODO Check if current role is Admin
 		utils.assertAuthorizedOperation("ADMIN");
-		
+
 		Optional<UserEntity> existingUser = userDao.findById(email);
 		if (existingUser.isPresent()) {
 			passwordDao.deleteById(email);

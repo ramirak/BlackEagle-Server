@@ -34,6 +34,9 @@ public class DataServiceJpa implements DataService {
 	private UserDao userDao;
 	private Utils utils;
 
+	public DataServiceJpa() {
+	}
+	
 	@Autowired
 	public void setUeConverter(DataEntityConverterImplementation ueConverter) {
 		this.deConverter = ueConverter;
@@ -151,7 +154,7 @@ public class DataServiceJpa implements DataService {
 		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();		
 		
 		// Get only users of role DEVICE	
-		Optional<UserEntity> existingDevice = userDao.findByIdAndRole(deviceId, UserRole.DEVICE.name());
+		Optional<UserEntity> existingDevice = userDao.findByUidAndRole(deviceId, UserRole.DEVICE.name());
 		UserEntity deviceEntity;
 		if (existingDevice.isPresent()) {
 			 deviceEntity = existingDevice.get();
@@ -181,7 +184,7 @@ public class DataServiceJpa implements DataService {
 
 		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();		
 		
-		Optional<UserEntity> existingDevice = userDao.findByIdAndRole(deviceId, UserRole.DEVICE.name());
+		Optional<UserEntity> existingDevice = userDao.findByUidAndRole(deviceId, UserRole.DEVICE.name());
 		UserEntity deviceEntity;
 		if (existingDevice.isPresent()) {
 			 deviceEntity = existingDevice.get();

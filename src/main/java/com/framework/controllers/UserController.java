@@ -2,6 +2,8 @@ package com.framework.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,9 +34,7 @@ public class UserController {
 			method = RequestMethod.PUT, 
 			produces = MediaType.APPLICATION_JSON_VALUE, 
 			consumes = MediaType.APPLICATION_JSON_VALUE)
-	public UserBoundary update(@RequestBody UserBoundary newDetails) { 
-		String currentlyLoggedMail = null; // ToDo
-		String currentlyLoggedPass = null; // ToDo
+	public UserBoundary update(@RequestBody UserBoundary newDetails) { 		
 		return userService.updateUser(newDetails);
 	}
 	
@@ -61,7 +61,6 @@ public class UserController {
 			produces = MediaType.APPLICATION_JSON_VALUE, 
 			consumes = MediaType.APPLICATION_JSON_VALUE)
 	public UserBoundary deleteAccount(@RequestBody String oneTimeKey) {
-
 		return userService.deleteAccount(oneTimeKey);
 	}
 	

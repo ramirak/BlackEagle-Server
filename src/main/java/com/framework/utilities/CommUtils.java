@@ -12,7 +12,7 @@ import javax.mail.internet.MimeMessage;
 
 import org.springframework.stereotype.Service;
 
-import com.framework.security.configurations.ServerDefaults;
+import com.framework.constants.ServerDefaults;
 
 @Service
 public class CommUtils implements CommInterface{

@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.framework.boundaries.PasswordBoundary;
 import com.framework.boundaries.UserBoundary;
 import com.framework.boundaries.UserIdBoundary;
+import com.framework.constants.ServerDefaults;
 import com.framework.data.PasswordEntity;
 import com.framework.data.UserEntity;
 import com.framework.data.dao.PasswordDao;
@@ -29,7 +30,6 @@ import com.framework.exceptions.NotFoundException;
 import com.framework.logic.DeviceService;
 import com.framework.logic.converters.PasswordEntityConverterImlementation;
 import com.framework.logic.converters.UserEntityConverterImplementation;
-import com.framework.security.configurations.ServerDefaults;
 import com.framework.security.services.EncryptionUtils;
 import com.framework.utilities.Utils;
 
@@ -42,6 +42,9 @@ public class DeviceServiceJpa implements DeviceService {
 	private UserDao userDao;
 	private Utils utils;
 
+	public DeviceServiceJpa() {
+	}
+
 	@Autowired
 	public void setUserDao(UserDao userDao) {
 		this.userDao = userDao;
@@ -51,7 +54,7 @@ public class DeviceServiceJpa implements DeviceService {
 	public void setUeConverter(UserEntityConverterImplementation ueConverter) {
 		this.ueConverter = ueConverter;
 	}
-	
+
 	@Autowired
 	public void setPeConverter(PasswordEntityConverterImlementation peConverter) {
 		this.peConverter = peConverter;
@@ -109,7 +112,7 @@ public class DeviceServiceJpa implements DeviceService {
 		device.setUserId(new UserIdBoundary(newUID, passBoundary));
 		UserEntity deviceEntity = this.ueConverter.fromBoundary(device);
 		PasswordEntity passEntity = this.peConverter.fromBoundary(passBoundary);
-		
+
 		existingUser.addDeviceToUser(deviceEntity);
 		existingUser.addPassword(passEntity);
 		passwordDao.save(passEntity);

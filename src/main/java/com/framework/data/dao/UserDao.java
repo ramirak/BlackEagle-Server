@@ -17,8 +17,8 @@ public interface UserDao extends PagingAndSortingRepository<UserEntity, String> 
 			UserRole role,
 			Pageable pageable);
 
-	public Optional<UserEntity> findByIdAndRole(
-			@Param("id") String id,
+	public Optional<UserEntity> findByUidAndRole(
+			@Param("uid") String uid,
 			String role);
 	
 	public List<UserEntity> findAllByActive(

@@ -9,7 +9,7 @@ import javax.mail.internet.InternetAddress;
 
 import org.springframework.stereotype.Component;
 
-import com.framework.security.configurations.PasswordsDefaults;
+import com.framework.constants.PasswordsDefaults;
 
 @Component
 public class PasswordUtils {
