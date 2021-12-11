@@ -16,25 +16,16 @@ import com.framework.logic.UserService;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-
-	private UserService userService;
-	
-	@Autowired
-	public void setUserService(UserService userService) {
-		this.userService = userService;
-	}
-
-	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http.cors().and().csrf().disable()
 				.addFilter(new CustomUsernamePasswordAuthFilter(authenticationManager()))
-				.authorizeRequests().antMatchers("/*", "/users/*", "/login", "/users/register").permitAll()
-				.antMatchers("/users/update")
+				.authorizeRequests().antMatchers("/*", "/users/*","/device/*", "/login", "/users/register").permitAll()
+				.antMatchers("/users/update", "/device/add")
 				.access("hasRole('PLAYER')").and()
 				.formLogin(form -> form.loginPage("/login")
 						.defaultSuccessUrl("/home")
-						.failureUrl("/login?error=true"));
+						.failureUrl("/login?error=true")).logout();
 	}
 
 	@Override
@@ -45,7 +36,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	@Bean
 	public CustomBasicAuthenticationProvider authProvider() {
 		CustomBasicAuthenticationProvider authProvider = new CustomBasicAuthenticationProvider();
-		authProvider.setUserService(userService);
 		authProvider.setPasswordEncoder(passwordEncoder());
 		return authProvider;
 	}

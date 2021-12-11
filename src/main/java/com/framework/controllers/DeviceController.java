@@ -6,9 +6,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.framework.boundaries.UserBoundary;
 import com.framework.logic.DeviceService;
 
+@RestController
 public class DeviceController {
 	//TODO: getAll and specific
 	private DeviceService deviceService;
@@ -18,11 +21,11 @@ public class DeviceController {
 		this.deviceService = deviceService;
 	}
 
-	@RequestMapping(path = "/device/add/{userId}",
+	@RequestMapping(path = "/device/add",
 			method = RequestMethod.POST,
 			produces = MediaType.APPLICATION_JSON_VALUE,
 			consumes = MediaType.APPLICATION_JSON_VALUE)
-	public UserBoundary addDevice(@RequestBody UserBoundary device, @PathVariable("userId") String userId) {
+	public UserBoundary addDevice(@RequestBody UserBoundary device) {
 		return deviceService.addDevice(device);
 	}
 

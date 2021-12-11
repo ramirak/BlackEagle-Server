@@ -32,7 +32,7 @@ public class UserEntity {
 	@JoinColumn(name = "OwnerUid")
 	private UserEntity deviceOwner;
 
-	@OneToMany(mappedBy = "deviceOwner")
+	@OneToMany(mappedBy = "deviceOwner", cascade = CascadeType.ALL)
 	private Set<UserEntity> devices;
 
 	@OneToMany(mappedBy = "dataOwner")

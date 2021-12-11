@@ -24,7 +24,13 @@ public class EncryptionUtils {
 		SecretKey key = keyGenerator.generateKey();
 		return key;
 	}
-
+	
+	public static String convertSecretKeyToString(SecretKey secretKey) throws NoSuchAlgorithmException {
+	    byte[] rawData = secretKey.getEncoded();
+	    String encodedKey = Base64.getEncoder().encodeToString(rawData);
+	    return encodedKey;
+	}
+	
 	public static SecretKey getKeyFromPassword(String password, String salt)
 			throws NoSuchAlgorithmException, InvalidKeySpecException {
 		SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");

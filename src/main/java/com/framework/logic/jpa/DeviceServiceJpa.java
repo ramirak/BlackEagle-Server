@@ -35,11 +35,11 @@ import com.framework.utilities.Utils;
 
 @Service
 public class DeviceServiceJpa implements DeviceService {
+	private UserDao userDao;
+	private PasswordDao passwordDao;
 	private UserEntityConverterImplementation ueConverter;
 	private PasswordEntityConverterImlementation peConverter;
 	private PasswordEncoder passwordEncoder;
-	private PasswordDao passwordDao;
-	private UserDao userDao;
 	private Utils utils;
 
 	public DeviceServiceJpa() {
@@ -48,6 +48,11 @@ public class DeviceServiceJpa implements DeviceService {
 	@Autowired
 	public void setUserDao(UserDao userDao) {
 		this.userDao = userDao;
+	}
+
+	@Autowired
+	public void setPasswordDao(PasswordDao passwordDao) {
+		this.passwordDao = passwordDao;
 	}
 
 	@Autowired
@@ -66,11 +71,6 @@ public class DeviceServiceJpa implements DeviceService {
 	}
 
 	@Autowired
-	public void setPasswordDao(PasswordDao passwordDao) {
-		this.passwordDao = passwordDao;
-	}
-
-	@Autowired
 	public void setUtils(Utils utils) {
 		this.utils = utils;
 	}
@@ -79,8 +79,8 @@ public class DeviceServiceJpa implements DeviceService {
 	public UserBoundary addDevice(UserBoundary device) {
 		utils.assertNull(device);
 
-		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-				.getUsername();
+		String authenticatedUser = SecurityContextHolder.getContext().getAuthentication().getName();
+
 		UserEntity existingUser = userDao.findById(authenticatedUser)
 				.orElseThrow(() -> new NotFoundException("User not found"));
 
@@ -103,7 +103,7 @@ public class DeviceServiceJpa implements DeviceService {
 		String newKey;
 		// TODO: check this function
 		try {
-			newKey = EncryptionUtils.generateKey(256).toString();
+			newKey = EncryptionUtils.convertSecretKeyToString(EncryptionUtils.generateKey(256));
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 			throw new RuntimeException();
@@ -114,10 +114,10 @@ public class DeviceServiceJpa implements DeviceService {
 		PasswordEntity passEntity = this.peConverter.fromBoundary(passBoundary);
 
 		existingUser.addDeviceToUser(deviceEntity);
-		existingUser.addPassword(passEntity);
+		deviceEntity.addPassword(passEntity);
 		passwordDao.save(passEntity);
 		userDao.save(deviceEntity);
-		this.userDao.save(existingUser);
+		userDao.save(existingUser);
 		// Return a boundary with original unhashed password
 		deviceEntity.getActivePasswordEntity().setPassword(newKey);
 		return this.ueConverter.toBoundary(deviceEntity);

@@ -13,10 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.framework.boundaries.PasswordBoundary;
 import com.framework.boundaries.UserBoundary;
 import com.framework.data.PasswordEntity;
 import com.framework.data.UserEntity;
@@ -125,7 +122,7 @@ public class UserServiceJpa implements UserService {
 	}
 
 	@Override
-	public UserBoundary updateUser(UserBoundary update) {
+	public UserBoundary updateUser(UserBoundary update) {/*
 		// TODO get currently logged-in password details
 		String authenticatedUser = SecurityContextHolder.getContext().getAuthentication().getName();
 		boolean dirty = false;
@@ -171,6 +168,9 @@ public class UserServiceJpa implements UserService {
 		if (dirty)
 			userDao.save(existingEntity);
 		return ueConverter.toBoundary(existingEntity);
+		
+		*/
+		return null;
 
 	}
 
