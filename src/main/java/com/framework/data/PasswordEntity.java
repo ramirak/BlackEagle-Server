@@ -17,7 +17,7 @@ import javax.persistence.TemporalType;
 
 @Entity
 @Table(name = "Passwords")
-public class PasswordEntity implements Serializable {
+public class PasswordEntity implements Serializable, Comparable<PasswordEntity> {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY) // Incremental id
 	private int id;
@@ -30,6 +30,7 @@ public class PasswordEntity implements Serializable {
 	private boolean active;
 	private String hint;
 
+
 	@ManyToOne
 	@JoinColumn(name = "pass_owner")
 	private UserEntity passOwner;
@@ -38,6 +39,14 @@ public class PasswordEntity implements Serializable {
 		return passOwner;
 	}
 
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+	
 	public void setOwner(UserEntity passOwner) {
 		this.passOwner = passOwner;
 	}
@@ -91,6 +100,13 @@ public class PasswordEntity implements Serializable {
 		return active == other.active && Objects.equals(creationTime, other.creationTime)
 				&& Objects.equals(hint, other.hint) && id == other.id && Objects.equals(passOwner, other.passOwner)
 				&& Objects.equals(password, other.password);
+	}
+
+	@Override
+	public int compareTo(PasswordEntity o) {
+		if(o.getCreationTime() == null) // TODO: check why null
+			return 1;
+		return this.creationTime.compareTo(o.creationTime);
 	}
 
 

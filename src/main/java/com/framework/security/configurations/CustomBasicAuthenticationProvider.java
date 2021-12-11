@@ -11,23 +11,25 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.framework.data.PasswordEntity;
 import com.framework.data.dao.PasswordDao;
 import com.framework.exceptions.NotFoundException;
+import com.framework.logic.UserService;
 import com.framework.logic.jpa.UserServiceJpa;
 
 @Component
 public class CustomBasicAuthenticationProvider implements AuthenticationProvider {
 
-	private UserServiceJpa userService;
+	private UserDetailsService userService;
 	private PasswordDao passwordDao;
 	private PasswordEncoder passwordEncoder;
 
 	@Autowired
-	public void setUserService(UserServiceJpa userService) {
+	public void setUserService(UserDetailsService userService) {
 		this.userService = userService;
 	}
 	

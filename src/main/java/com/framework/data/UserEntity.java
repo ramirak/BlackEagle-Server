@@ -1,8 +1,12 @@
 package com.framework.data;
 
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -13,6 +17,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.framework.constants.PasswordsDefaults;
 
 @Entity
 @Table(name = "Users")
@@ -23,21 +28,22 @@ public class UserEntity {
 	private int deviceCount;
 	private boolean active;
 
-	@ManyToOne 
-	@JoinColumn(name = "OwnerUid") 
+	@ManyToOne
+	@JoinColumn(name = "OwnerUid")
 	private UserEntity deviceOwner;
 
-	@OneToMany(mappedBy = "deviceOwner") 
+	@OneToMany(mappedBy = "deviceOwner")
 	private Set<UserEntity> devices;
 
-	@OneToMany(mappedBy = "dataOwner") 
+	@OneToMany(mappedBy = "dataOwner")
 	private Set<DataEntity> userData;
 
-	@OneToMany(mappedBy = "passOwner") 
+	@OneToMany(mappedBy = "passOwner")
 	private Set<PasswordEntity> passwords;
 
 	public UserEntity() {
-		this.passwords = new HashSet<>();
+		// Passwords are ordered by date
+		this.passwords = new TreeSet<>();
 		this.userData = new HashSet<>();
 		this.devices = new HashSet<>();
 	}
@@ -98,11 +104,18 @@ public class UserEntity {
 		this.passwords = passwords;
 	}
 
-	public void addPassword(PasswordEntity pe) {
-		getActivePasswordEntity().setActive(false);
+	public Optional<PasswordEntity> addPassword(PasswordEntity pe) {
+		Optional<PasswordEntity> firstElement = Optional.empty();
+		if (passwords.size() >= PasswordsDefaults.HISTORY && PasswordsDefaults.HISTORY > 1) {
+			firstElement = passwords.stream().findFirst();
+			passwords.remove(firstElement.get());
+		}
+		if (passwords.size() > 0)
+			getActivePasswordEntity().setActive(false);
 		pe.setActive(true);
 		this.passwords.add(pe);
 		pe.setOwner(this);
+		return firstElement;
 	}
 
 	public PasswordEntity getActivePasswordEntity() {

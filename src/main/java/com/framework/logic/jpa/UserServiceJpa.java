@@ -110,7 +110,7 @@ public class UserServiceJpa implements UserService {
 		user.getUserId().getPasswordBoundary().setCreationTime(new Date());
 		// Convert and save the password entity
 		PasswordEntity pe = peConverter.fromBoundary(user.getUserId().getPasswordBoundary());
-
+		System.out.println(pe.getCreationTime() + " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 		ue.addPassword(pe);
 		userDao.save(ue);
 		passwordDao.save(pe);
@@ -128,12 +128,7 @@ public class UserServiceJpa implements UserService {
 	public UserBoundary updateUser(UserBoundary update) {
 		// TODO get currently logged-in password details
 		String authenticatedUser = SecurityContextHolder.getContext().getAuthentication().getName();
-		// String authenticatedPWD =
-		// SecurityContextHolder.getContext().getAuthentication().getCredentials().toString();//((UserDetails)
-		// SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getPassword();
-
 		boolean dirty = false;
-
 		utils.assertOwnership(authenticatedUser, update.getUserId().getUID());
 
 		// Find the corresponding user in the database
@@ -155,20 +150,23 @@ public class UserServiceJpa implements UserService {
 			if (!passwordEncoder.matches(update.getUserId().getPasswordBoundary().getOptionalPassword(),
 					existingEntity.getActivePasswordEntity().getPassword()))
 				throw new UnauthorizedRequest("Failed to verify old password");
-		//	if (!existingEntity.isPasswordInHistory(passwordEncoder.encode(newPassword))) {
-				// Check if the new password is a valid password
-				//if (passwordUtils.checkPassword(newPassword)) {
-					// If all the checks are passed, proceed to updating the entity with the new
-					// password
-					updatedPassBoundary.setPassword(passwordEncoder.encode(newPassword));
-					updatedPassBoundary.setCreationTime(new Date());
-					PasswordEntity newPassEntity = peConverter.fromBoundary(updatedPassBoundary);
-					existingEntity.addPassword(newPassEntity);
-					passwordDao.save(newPassEntity);
-					// TODO delete old passwords
-					dirty = true;
-			//	}
-			//}
+			// if (!existingEntity.isPasswordInHistory(passwordEncoder.encode(newPassword)))
+			// {
+			// Check if the new password is a valid password
+			// if (passwordUtils.checkPassword(newPassword)) {
+			// If all the checks are passed, proceed to updating the entity with the new
+			// password
+			updatedPassBoundary.setPassword(passwordEncoder.encode(newPassword));
+			updatedPassBoundary.setCreationTime(new Date());
+			PasswordEntity newPassEntity = peConverter.fromBoundary(updatedPassBoundary);
+			Optional<PasswordEntity> oldPasswordEntity = existingEntity.addPassword(newPassEntity);
+			if (oldPasswordEntity.isPresent())
+				passwordDao.delete(oldPasswordEntity.get());
+			passwordDao.save(newPassEntity);
+			// TODO delete old passwords
+			dirty = true;
+			// }
+			// }
 		}
 		if (dirty)
 			userDao.save(existingEntity);
@@ -208,7 +206,7 @@ public class UserServiceJpa implements UserService {
 	}
 
 	@Override
-	@Transactional 
+	@Transactional
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		Optional<UserEntity> exitingUser = userDao.findById(username);
 		if (!exitingUser.isPresent())
@@ -220,10 +218,6 @@ public class UserServiceJpa implements UserService {
 		// Only one role per user, set current saved role
 		grantedAuthorities.add(new SimpleGrantedAuthority(ue.getRole()));
 
-		/*
-		 * ..Or set multiple roles per user for (UserRole role : UserRole.values()) {
-		 * grantedAuthorities.add(new SimpleGrantedAuthority(role.name())); }
-		 */
 		return new org.springframework.security.core.userdetails.User(ue.getUid(),
 				ue.getActivePasswordEntity().getPassword(), grantedAuthorities);
 	}
