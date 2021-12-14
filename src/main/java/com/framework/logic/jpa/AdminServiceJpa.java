@@ -18,20 +18,20 @@ import com.framework.datatypes.UserRole;
 import com.framework.exceptions.NotFoundException;
 import com.framework.logic.AdminService;
 import com.framework.logic.converters.UserEntityConverterImplementation;
-import com.framework.utilities.Utils;
+import com.framework.utilities.Validations;
 
 @Service
 public class AdminServiceJpa implements AdminService {
 	private UserDao userDao;
 	private PasswordDao passwordDao;
 	private UserEntityConverterImplementation ueConverter;
-	private Utils utils;
+	private Validations utils;
 
 	public AdminServiceJpa() {
 	}
 
 	@Autowired
-	public void setUtils(Utils utils) {
+	public void setUtils(Validations utils) {
 		this.utils = utils;
 	}
 

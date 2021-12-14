@@ -11,17 +11,38 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 
-import com.framework.logic.UserService;
+import com.framework.logic.jpa.EventServiceJpa;
+
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+	private EventServiceJpa eventJpa;
+	
+	@Autowired
+	public void setEventJpa(EventServiceJpa eventJpa) {
+		this.eventJpa = eventJpa;
+	}
+	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http.cors().and().csrf().disable()
-				.addFilter(new CustomUsernamePasswordAuthFilter(authenticationManager()))
-				.authorizeRequests().antMatchers("/*", "/users/*","/device/*", "/login", "/users/register").permitAll()
-				.antMatchers("/users/update", "/device/add")
+				.addFilter(new CustomUsernamePasswordAuthFilter(authenticationManager(),eventJpa))
+				.authorizeRequests()
+				.antMatchers(
+						"/*", 
+						"/users/*",
+						"/device/*",
+						"/data/*", 
+						"/login", 
+						"/users/register")
+				.permitAll()
+				.antMatchers(
+						"/users/update", 
+						"/device/add" , 
+						"/device/delete", 
+						"/data/add",
+						"/data/update")
 				.access("hasRole('PLAYER')").and()
 				.formLogin(form -> form.loginPage("/login")
 						.defaultSuccessUrl("/home")

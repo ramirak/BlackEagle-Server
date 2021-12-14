@@ -1,4 +1,4 @@
-package com.framework.utilities;
+package com.framework.communication;
 
 public interface CommInterface {
 	public void sendEmail(String sendTo, String text, String subject);

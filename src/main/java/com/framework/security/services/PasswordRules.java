@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import com.framework.constants.PasswordsDefaults;
 
 @Component
-public class PasswordUtils {
+public class PasswordRules {
 	public Boolean isPassInDictionary(String p) {
 		if (!PasswordsDefaults.PREVENT_DICTIONARY)
 			return false;

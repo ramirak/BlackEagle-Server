@@ -9,7 +9,7 @@ import com.framework.exceptions.BadRequestException;
 import com.framework.exceptions.UnauthorizedRequest;
 
 @Service
-public class Utils {
+public class Validations {
 	
 	public void assertValidRole(String role) {
 		for (UserRole ur : UserRole.values()) {

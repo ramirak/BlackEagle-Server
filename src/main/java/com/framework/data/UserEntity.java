@@ -1,7 +1,5 @@
 package com.framework.data;
 
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
@@ -35,12 +33,16 @@ public class UserEntity {
 	@OneToMany(mappedBy = "deviceOwner", cascade = CascadeType.ALL)
 	private Set<UserEntity> devices;
 
-	@OneToMany(mappedBy = "dataOwner")
+	@OneToMany(mappedBy = "dataOwner", cascade = CascadeType.ALL)
 	private Set<DataEntity> userData;
 
-	@OneToMany(mappedBy = "passOwner")
+	@OneToMany(mappedBy = "passOwner", cascade = CascadeType.ALL)
 	private Set<PasswordEntity> passwords;
 
+	@OneToMany(mappedBy = "eventOwner", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	private Set<EventEntity> events;
+
+	
 	public UserEntity() {
 		// Passwords are ordered by date
 		this.passwords = new TreeSet<>();
@@ -96,6 +98,14 @@ public class UserEntity {
 		this.userData = userData;
 	}
 
+	public Set<EventEntity> getEvents() {
+		return events;
+	}
+
+	public void setEvents(Set<EventEntity> events) {
+		this.events = events;
+	}
+	
 	public Set<PasswordEntity> getPasswords() {
 		return passwords;
 	}
@@ -144,7 +154,12 @@ public class UserEntity {
 		deviceEntity.setDeviceOwner(this);
 		deviceCount++;
 	}
-
+	
+	public void addEventToUser(EventEntity eventEntity) {
+		this.events.add(eventEntity);
+		eventEntity.setEventOwner(this);
+	}
+	
 	@Override
 	public int hashCode() {
 		return Objects.hash(active, deviceCount, deviceOwner, role, uid);
@@ -161,7 +176,7 @@ public class UserEntity {
 		UserEntity other = (UserEntity) obj;
 		return active == other.active && deviceCount == other.deviceCount
 				&& Objects.equals(deviceOwner, other.deviceOwner) && Objects.equals(devices, other.devices)
-				&& Objects.equals(passwords, other.passwords) && Objects.equals(role, other.role)
+				&& Objects.equals(passwords, other.passwords) && Objects.equals(events, other.events) && Objects.equals(role, other.role)
 				&& Objects.equals(uid, other.uid) && Objects.equals(userData, other.userData);
 	}
 

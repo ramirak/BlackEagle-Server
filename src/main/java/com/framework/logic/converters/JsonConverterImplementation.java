@@ -2,6 +2,7 @@ package com.framework.logic.converters;
 
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,6 +11,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class JsonConverterImplementation implements JsonConverter {
 	private ObjectMapper jackson;
 
+	@Autowired
+	public void setJackson(ObjectMapper jackson) {
+		this.jackson = jackson;
+	}
+	
 	@Override
 	public String mapToJSON(Map<String, Object> value) {
 		try {

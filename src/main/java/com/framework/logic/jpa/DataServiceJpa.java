@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.SessionAttribute;
 
 import com.framework.boundaries.DataBoundary;
 import com.framework.data.DataEntity;
@@ -24,7 +25,8 @@ import com.framework.exceptions.NotFoundException;
 import com.framework.logic.DataService;
 import com.framework.logic.converters.DataEntityConverterImplementation;
 import com.framework.logic.converters.JsonConverter;
-import com.framework.utilities.Utils;
+import com.framework.security.sessions.SessionAttributes;
+import com.framework.utilities.Validations;
 
 @Service
 public class DataServiceJpa implements DataService {
@@ -32,11 +34,17 @@ public class DataServiceJpa implements DataService {
 	private JsonConverter jsConverter;
 	private DataDao dataDao;
 	private UserDao userDao;
-	private Utils utils;
+	private Validations validations;
+	private SessionAttributes session;
 
 	public DataServiceJpa() {
 	}
-	
+
+	@Autowired
+	public void setSession(SessionAttributes session) {
+		this.session = session;
+	}
+
 	@Autowired
 	public void setUeConverter(DataEntityConverterImplementation ueConverter) {
 		this.deConverter = ueConverter;
@@ -52,30 +60,35 @@ public class DataServiceJpa implements DataService {
 		this.userDao = userDao;
 	}
 
-	public void setUtils(Utils utils) {
-		this.utils = utils;
+	@Autowired
+	public void setDataDao(DataDao dataDao) {
+		this.dataDao = dataDao;
+	}
+	
+	@Autowired
+	public void setValidations(Validations validations) {
+		this.validations = validations;
 	}
 
 	@Override
-	// @Transactional
+	@Transactional
 	public DataBoundary addData(String deviceId, DataBoundary newData) {
-		utils.assertNull(deviceId);
-		utils.assertNull(newData);
-		utils.assertNull(newData.getDataType());
-		utils.assertNull(newData.getDataOwner());
+		validations.assertNull(deviceId);
+		validations.assertNull(newData);
+		validations.assertNull(newData.getDataType());
 
 		// TODO: Encryption of Data
 
-		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();		
+		String authenticatedUser = session.retrieveAuthenticatedUsername();
 		UserEntity existingDevice = userDao.findById(deviceId)
 				.orElseThrow(() -> new NotFoundException("Device not found: " + deviceId));
 
-		utils.assertOwnership(authenticatedUser, existingDevice.getDeviceOwner().getUid());
+		validations.assertOwnership(authenticatedUser, existingDevice.getDeviceOwner().getUid());
 
 		String newUID = UUID.randomUUID().toString();
 
 		Optional<DataEntity> existingDataOptional = dataDao.findById(newUID);
-		// We would like to prevent the zero chance of two equal UUID
+		// We would like to prevent the small chance of two equal UUID
 		while (existingDataOptional.isPresent())
 			newUID = UUID.randomUUID().toString();
 
@@ -88,12 +101,13 @@ public class DataServiceJpa implements DataService {
 		this.dataDao.save(dataEntity);
 		this.userDao.save(existingDevice);
 		return this.deConverter.toBoundary(dataEntity);
+
 	}
 
 	@Override
 	public DataBoundary updateData(DataBoundary update) {
-		utils.assertNull(update);
-		utils.assertNull(update.getDataId());
+		validations.assertNull(update);
+		validations.assertNull(update.getDataId());
 
 		Optional<DataEntity> existingData = dataDao.findById(update.getDataId());
 		if (existingData.isPresent()) {
@@ -107,21 +121,22 @@ public class DataServiceJpa implements DataService {
 			dataEntity = this.dataDao.save(dataEntity);
 			return this.deConverter.toBoundary(dataEntity);
 		} else {
-			throw new NotFoundException("Could not find data in the database");
+			throw new NotFoundException("Could not find requested data");
 		}
 	}
 
 	@Override
 	@Transactional
 	public DataBoundary deleteData(String deviceId, String dataId) {
-		utils.assertNull(deviceId);
-		utils.assertNull(dataId);
+		validations.assertNull(deviceId);
+		validations.assertNull(dataId);
 
-		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();		
+		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.getUsername();
 		UserEntity existingDevice = userDao.findById(deviceId)
 				.orElseThrow(() -> new NotFoundException("Device not found: " + deviceId));
-		
-		utils.assertOwnership(existingDevice.getDeviceOwner().getUid(), authenticatedUser);
+
+		validations.assertOwnership(existingDevice.getDeviceOwner().getUid(), authenticatedUser);
 
 		Optional<DataEntity> existingData = this.dataDao.findById(dataId);
 		if (!existingData.isPresent())
@@ -135,44 +150,46 @@ public class DataServiceJpa implements DataService {
 	@Override
 	@Transactional
 	public void deleteAllData(String deviceId) {
-		utils.assertNull(deviceId);
+		validations.assertNull(deviceId);
 
-		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();		
+		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.getUsername();
 		UserEntity existingDevice = userDao.findById(deviceId)
 				.orElseThrow(() -> new NotFoundException("Device not found: " + deviceId));
 
-		utils.assertOwnership(existingDevice.getDeviceOwner().getUid(), authenticatedUser);
+		validations.assertOwnership(existingDevice.getDeviceOwner().getUid(), authenticatedUser);
 		this.dataDao.deleteAll(existingDevice.getUserData());
 	}
 
 	@Override
 	@Transactional(readOnly = true)
 	public DataBoundary getSpecificData(String deviceId, String dataId) {
-		utils.assertNull(deviceId);
-		utils.assertNull(dataId);
+		validations.assertNull(deviceId);
+		validations.assertNull(dataId);
 
-		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();		
-		
-		// Get only users of role DEVICE	
+		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.getUsername();
+
+		// Get only users of role DEVICE
 		Optional<UserEntity> existingDevice = userDao.findByUidAndRole(deviceId, UserRole.DEVICE.name());
 		UserEntity deviceEntity;
 		if (existingDevice.isPresent()) {
-			 deviceEntity = existingDevice.get();
-		}
-		else throw new NotFoundException("Device not found: " + deviceId);
+			deviceEntity = existingDevice.get();
+		} else
+			throw new NotFoundException("Device not found: " + deviceId);
 
 		// check if device owned by the authenticated user
-		utils.assertOwnership(authenticatedUser, deviceEntity.getDeviceOwner().getUid());
+		validations.assertOwnership(authenticatedUser, deviceEntity.getDeviceOwner().getUid());
 
 		Optional<DataEntity> existingData = this.dataDao.findById(dataId);
 		DataEntity dataEntity;
 		if (existingData.isPresent()) {
-			 dataEntity = existingData.get();
-		}
-		else throw new NotFoundException("Could not find data by id " + dataId);
-		
+			dataEntity = existingData.get();
+		} else
+			throw new NotFoundException("Could not find data by id " + dataId);
+
 		// Check if data owned by the device id
-		utils.assertOwnership(deviceEntity.getUid(), dataEntity.getDataOwner().getUid());
+		validations.assertOwnership(deviceEntity.getUid(), dataEntity.getDataOwner().getUid());
 
 		return this.deConverter.toBoundary(dataEntity);
 	}
@@ -180,18 +197,19 @@ public class DataServiceJpa implements DataService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<DataBoundary> getAllData(String deviceId, int page, int size) {
-		utils.assertNull(deviceId);
+		validations.assertNull(deviceId);
 
-		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();		
-		
+		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.getUsername();
+
 		Optional<UserEntity> existingDevice = userDao.findByUidAndRole(deviceId, UserRole.DEVICE.name());
 		UserEntity deviceEntity;
 		if (existingDevice.isPresent()) {
-			 deviceEntity = existingDevice.get();
-		}
-		else throw new NotFoundException("Device not found: " + deviceId);
+			deviceEntity = existingDevice.get();
+		} else
+			throw new NotFoundException("Device not found: " + deviceId);
 
-		utils.assertOwnership(authenticatedUser, deviceEntity.getDeviceOwner().getUid());
+		validations.assertOwnership(authenticatedUser, deviceEntity.getDeviceOwner().getUid());
 
 		return this.dataDao.findAll(PageRequest.of(page, size, Direction.DESC, "createdTimestamp", "dataId"))
 				.getContent().stream().map(this.deConverter::toBoundary).collect(Collectors.toList());

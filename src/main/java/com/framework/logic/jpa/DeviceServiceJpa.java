@@ -31,7 +31,7 @@ import com.framework.logic.DeviceService;
 import com.framework.logic.converters.PasswordEntityConverterImlementation;
 import com.framework.logic.converters.UserEntityConverterImplementation;
 import com.framework.security.services.EncryptionUtils;
-import com.framework.utilities.Utils;
+import com.framework.utilities.Validations;
 
 @Service
 public class DeviceServiceJpa implements DeviceService {
@@ -40,7 +40,7 @@ public class DeviceServiceJpa implements DeviceService {
 	private UserEntityConverterImplementation ueConverter;
 	private PasswordEntityConverterImlementation peConverter;
 	private PasswordEncoder passwordEncoder;
-	private Utils utils;
+	private Validations utils;
 
 	public DeviceServiceJpa() {
 	}
@@ -71,7 +71,7 @@ public class DeviceServiceJpa implements DeviceService {
 	}
 
 	@Autowired
-	public void setUtils(Utils utils) {
+	public void setUtils(Validations utils) {
 		this.utils = utils;
 	}
 
@@ -128,8 +128,8 @@ public class DeviceServiceJpa implements DeviceService {
 		utils.assertNull(update);
 		utils.assertNull(update.getUserId());
 
-		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-				.getUsername();
+		String authenticatedUser = SecurityContextHolder.getContext().getAuthentication().getName();
+
 		utils.assertOwnership(authenticatedUser, update.getUserId().getUID());
 
 		Optional<UserEntity> existingDevice = userDao.findById(update.getUserId().getUID());
@@ -147,15 +147,20 @@ public class DeviceServiceJpa implements DeviceService {
 
 	@Override
 	public UserBoundary deleteDevice(String deviceId) {
-		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-				.getUsername();
+		String authenticatedUser = SecurityContextHolder.getContext().getAuthentication().getName();
+
 		Optional<UserEntity> existingDevice = this.userDao.findById(deviceId);
 		if (!existingDevice.isPresent())
 			throw new NotFoundException("Could not find device by id " + deviceId);
 
-		utils.assertOwnership(deviceId, authenticatedUser);
-
 		UserEntity deviceEntity = existingDevice.get();
+		UserEntity deviceOwner = deviceEntity.getDeviceOwner();
+		utils.assertOwnership(deviceOwner.getUid(), authenticatedUser);
+		/*
+		 * deviceEntity.getPasswords(). deviceOwner.getDevices().remove(deviceEntity);
+		 * 
+		 * this.userDao.save(deviceOwner);
+		 */
 		this.userDao.delete(deviceEntity);
 		return ueConverter.toBoundary(deviceEntity);
 	}

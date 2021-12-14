@@ -14,6 +14,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.framework.boundaries.PasswordBoundary;
 import com.framework.boundaries.UserBoundary;
 import com.framework.data.PasswordEntity;
 import com.framework.data.UserEntity;
@@ -27,8 +29,8 @@ import com.framework.logic.UserService;
 import com.framework.logic.converters.PasswordEntityConverterImlementation;
 import com.framework.logic.converters.UserEntityConverterImplementation;
 import com.framework.security.services.OTPService;
-import com.framework.security.services.PasswordUtils;
-import com.framework.utilities.Utils;
+import com.framework.security.services.PasswordRules;
+import com.framework.utilities.Validations;
 
 @Service
 public class UserServiceJpa implements UserService {
@@ -37,9 +39,9 @@ public class UserServiceJpa implements UserService {
 	private UserEntityConverterImplementation ueConverter;
 	private PasswordEntityConverterImlementation peConverter;
 	private PasswordEncoder passwordEncoder;
-	private PasswordUtils passwordUtils;
+	private PasswordRules passwordUtils;
 	private OTPService otpService;
-	private Utils utils;
+	private Validations utils;
 
 	public UserServiceJpa() {
 	}
@@ -55,7 +57,7 @@ public class UserServiceJpa implements UserService {
 	}
 
 	@Autowired
-	public void setPasswordUtils(PasswordUtils passwordUtils) {
+	public void setPasswordUtils(PasswordRules passwordUtils) {
 		this.passwordUtils = passwordUtils;
 	}
 
@@ -80,7 +82,7 @@ public class UserServiceJpa implements UserService {
 	}
 
 	@Autowired
-	public void setUtils(Utils utils) {
+	public void setUtils(Validations utils) {
 		this.utils = utils;
 	}
 
@@ -107,10 +109,8 @@ public class UserServiceJpa implements UserService {
 		user.getUserId().getPasswordBoundary().setCreationTime(new Date());
 		// Convert and save the password entity
 		PasswordEntity pe = peConverter.fromBoundary(user.getUserId().getPasswordBoundary());
-		System.out.println(pe.getCreationTime() + " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 		ue.addPassword(pe);
 		userDao.save(ue);
-		passwordDao.save(pe);
 
 		return user;
 	}
@@ -122,7 +122,7 @@ public class UserServiceJpa implements UserService {
 	}
 
 	@Override
-	public UserBoundary updateUser(UserBoundary update) {/*
+	public UserBoundary updateUser(UserBoundary update) {
 		// TODO get currently logged-in password details
 		String authenticatedUser = SecurityContextHolder.getContext().getAuthentication().getName();
 		boolean dirty = false;
@@ -168,10 +168,6 @@ public class UserServiceJpa implements UserService {
 		if (dirty)
 			userDao.save(existingEntity);
 		return ueConverter.toBoundary(existingEntity);
-		
-		*/
-		return null;
-
 	}
 
 	@Override

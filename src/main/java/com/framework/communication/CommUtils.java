@@ -1,4 +1,4 @@
-package com.framework.utilities;
+package com.framework.communication;
 
 import java.util.Properties;
 

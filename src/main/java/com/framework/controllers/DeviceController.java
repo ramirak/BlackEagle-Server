@@ -37,9 +37,11 @@ public class DeviceController {
 		return deviceService.updateDevice(device);
 	}
 
-	@RequestMapping(path = "/device/delete/{userId}/{deviceId}",
-			method = RequestMethod.DELETE)
-	public UserBoundary deleteDevice(@PathVariable("userId") String userId, @PathVariable String deviceId) {
+	@RequestMapping(path = "/device/delete/{deviceId}",
+			method = RequestMethod.DELETE,
+			produces = MediaType.APPLICATION_JSON_VALUE
+			)
+	public UserBoundary deleteDevice(@PathVariable String deviceId) {
 		return deviceService.deleteDevice(deviceId);
 	}
 }

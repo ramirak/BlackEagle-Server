@@ -22,7 +22,6 @@ public class DataEntityConverterImplementation implements EntityConverter<DataEn
 		dataBoundary.setCreatedTimestamp(entity.getCreatedTimestamp());
 		dataBoundary.setDataAttributes(jsConverter.JSONToMap(entity.getDataAttributes()));
 		dataBoundary.setDataId(entity.getDataId());
-		dataBoundary.setDataOwner(entity.getDataOwner().getDeviceOwner());
 		dataBoundary.setDataType(UserData.valueOf(entity.getDataType()));
 		return dataBoundary;
 	}
@@ -33,7 +32,6 @@ public class DataEntityConverterImplementation implements EntityConverter<DataEn
 		dataEntity.setCreatedTimestamp(boundary.getCreatedTimestamp());
 		dataEntity.setDataAttributes(jsConverter.mapToJSON(boundary.getDataAttributes()));
 		dataEntity.setDataId(boundary.getDataId());
-		dataEntity.setDataOwner(boundary.getDataOwner().getDeviceOwner());
 		dataEntity.setDataType(boundary.getDataType().name());
 		return dataEntity;
 	}
