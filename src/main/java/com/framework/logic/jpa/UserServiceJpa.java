@@ -17,10 +17,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.framework.boundaries.PasswordBoundary;
 import com.framework.boundaries.UserBoundary;
+import com.framework.data.EventEntity;
 import com.framework.data.PasswordEntity;
 import com.framework.data.UserEntity;
+import com.framework.data.dao.EventDao;
 import com.framework.data.dao.PasswordDao;
 import com.framework.data.dao.UserDao;
+import com.framework.datatypes.EventType;
 import com.framework.datatypes.UserRole;
 import com.framework.exceptions.AlreadyExistingException;
 import com.framework.exceptions.NotFoundException;
@@ -29,17 +32,18 @@ import com.framework.logic.UserService;
 import com.framework.logic.converters.PasswordEntityConverterImlementation;
 import com.framework.logic.converters.UserEntityConverterImplementation;
 import com.framework.security.services.OTPService;
-import com.framework.security.services.PasswordRules;
+import com.framework.security.services.PasswordValidations;
 import com.framework.utilities.Validations;
 
 @Service
 public class UserServiceJpa implements UserService {
 	private UserDao userDao;
 	private PasswordDao passwordDao;
+	private EventServiceJpa eventServiceJpa;
 	private UserEntityConverterImplementation ueConverter;
 	private PasswordEntityConverterImlementation peConverter;
 	private PasswordEncoder passwordEncoder;
-	private PasswordRules passwordUtils;
+	private PasswordValidations passwordRules;
 	private OTPService otpService;
 	private Validations utils;
 
@@ -52,13 +56,18 @@ public class UserServiceJpa implements UserService {
 	}
 
 	@Autowired
+	public void setEventServiceJpa(EventServiceJpa eventServiceJpa) {
+		this.eventServiceJpa = eventServiceJpa;
+	}
+
+	@Autowired
 	public void setOtpService(OTPService otpService) {
 		this.otpService = otpService;
 	}
 
 	@Autowired
-	public void setPasswordUtils(PasswordRules passwordUtils) {
-		this.passwordUtils = passwordUtils;
+	public void setPasswordUtils(PasswordValidations passwordUtils) {
+		this.passwordRules = passwordUtils;
 	}
 
 	@Autowired
@@ -144,26 +153,26 @@ public class UserServiceJpa implements UserService {
 		if (updatedPassBoundary != null && newPassword != null && updatedPassBoundary.getHint() != null) {
 			utils.assertEmptyString(updatedPassBoundary.getHint());
 			// TODO Check authentication details / the user is required to enter his old
+			// password in the optional input
 			if (!passwordEncoder.matches(update.getUserId().getPasswordBoundary().getOptionalPassword(),
 					existingEntity.getActivePasswordEntity().getPassword()))
 				throw new UnauthorizedRequest("Failed to verify old password");
-			// if (!existingEntity.isPasswordInHistory(passwordEncoder.encode(newPassword)))
-			// {
-			// Check if the new password is a valid password
-			// if (passwordUtils.checkPassword(newPassword)) {
-			// If all the checks are passed, proceed to updating the entity with the new
-			// password
-			updatedPassBoundary.setPassword(passwordEncoder.encode(newPassword));
-			updatedPassBoundary.setCreationTime(new Date());
-			PasswordEntity newPassEntity = peConverter.fromBoundary(updatedPassBoundary);
-			Optional<PasswordEntity> oldPasswordEntity = existingEntity.addPassword(newPassEntity);
-			if (oldPasswordEntity.isPresent())
-				passwordDao.delete(oldPasswordEntity.get());
-			passwordDao.save(newPassEntity);
-			// TODO delete old passwords
-			dirty = true;
-			// }
-			// }
+			if (!passwordRules.isPasswordInHistory(newPassword, existingEntity.getPasswords())) {
+				// Check if the new password is a valid password
+				if (passwordRules.checkPassword(newPassword)) {
+					// If all the checks are passed, proceed to updating the entity with the new
+					// password
+					updatedPassBoundary.setPassword(passwordEncoder.encode(newPassword));
+					updatedPassBoundary.setCreationTime(new Date());
+					PasswordEntity newPassEntity = peConverter.fromBoundary(updatedPassBoundary);
+					Optional<PasswordEntity> oldPasswordEntity = existingEntity.addPassword(newPassEntity);
+					if (oldPasswordEntity.isPresent())
+						passwordDao.delete(oldPasswordEntity.get());
+					eventServiceJpa.createEvent(authenticatedUser, EventType.PASSWORD_UPDATE);
+					dirty = true;
+				}
+			}else
+				throw new AlreadyExistingException("Password was already used in the past");
 		}
 		if (dirty)
 			userDao.save(existingEntity);

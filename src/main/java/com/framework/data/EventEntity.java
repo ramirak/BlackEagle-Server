@@ -32,6 +32,12 @@ public class EventEntity {
 
 	public EventEntity() {
 	}
+	
+	public EventEntity(String type, Date timeOfEvent) {
+		this.type = type;
+		this.timeOfEvent = timeOfEvent;
+	}
+	
 	public EventEntity(String type, Date timeOfEvent, String eventAttributes) {
 		this.type = type;
 		this.timeOfEvent = timeOfEvent;

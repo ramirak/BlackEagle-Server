@@ -3,16 +3,37 @@ package com.framework.security.services;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+import java.util.Set;
 
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.framework.constants.PasswordsDefaults;
+import com.framework.data.PasswordEntity;
 
 @Component
-public class PasswordRules {
+public class PasswordValidations {
+
+	private PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+		this.passwordEncoder = passwordEncoder;
+	}
+	
+	public boolean isPasswordInHistory(String rawPassword, Set<PasswordEntity> passwords) {
+		for (PasswordEntity pe : passwords) {
+			if (passwordEncoder.matches(rawPassword, pe.getPassword()))
+				return true;
+		}
+		return false;
+	}
+
+	
 	public Boolean isPassInDictionary(String p) {
 		if (!PasswordsDefaults.PREVENT_DICTIONARY)
 			return false;

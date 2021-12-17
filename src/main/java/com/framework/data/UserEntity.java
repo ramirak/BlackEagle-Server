@@ -4,9 +4,11 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.persistence.CascadeType;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
@@ -14,6 +16,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.SortNatural;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.framework.constants.PasswordsDefaults;
 
@@ -36,13 +42,14 @@ public class UserEntity {
 	@OneToMany(mappedBy = "dataOwner", cascade = CascadeType.ALL)
 	private Set<DataEntity> userData;
 
+	@SortNatural
+	@ElementCollection
 	@OneToMany(mappedBy = "passOwner", cascade = CascadeType.ALL)
-	private Set<PasswordEntity> passwords;
+	private SortedSet<PasswordEntity> passwords;
 
 	@OneToMany(mappedBy = "eventOwner", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	private Set<EventEntity> events;
 
-	
 	public UserEntity() {
 		// Passwords are ordered by date
 		this.passwords = new TreeSet<>();
@@ -105,17 +112,18 @@ public class UserEntity {
 	public void setEvents(Set<EventEntity> events) {
 		this.events = events;
 	}
-	
+
 	public Set<PasswordEntity> getPasswords() {
 		return passwords;
 	}
 
-	public void setPasswords(Set<PasswordEntity> passwords) {
+	public void setPasswords(TreeSet<PasswordEntity> passwords) {
 		this.passwords = passwords;
 	}
 
 	public Optional<PasswordEntity> addPassword(PasswordEntity pe) {
 		Optional<PasswordEntity> firstElement = Optional.empty();
+
 		if (passwords.size() >= PasswordsDefaults.HISTORY && PasswordsDefaults.HISTORY > 1) {
 			firstElement = passwords.stream().findFirst();
 			passwords.remove(firstElement.get());
@@ -136,13 +144,6 @@ public class UserEntity {
 		return null;
 	}
 
-	public boolean isPasswordInHistory(String hashedPass) {
-		for (PasswordEntity pe : this.passwords) {
-			if (pe.getPassword().equals(hashedPass))
-				return true;
-		}
-		return false;
-	}
 
 	public void addDataToUser(DataEntity dataEntity) {
 		this.userData.add(dataEntity);
@@ -154,12 +155,12 @@ public class UserEntity {
 		deviceEntity.setDeviceOwner(this);
 		deviceCount++;
 	}
-	
+
 	public void addEventToUser(EventEntity eventEntity) {
 		this.events.add(eventEntity);
 		eventEntity.setEventOwner(this);
 	}
-	
+
 	@Override
 	public int hashCode() {
 		return Objects.hash(active, deviceCount, deviceOwner, role, uid);
@@ -176,8 +177,9 @@ public class UserEntity {
 		UserEntity other = (UserEntity) obj;
 		return active == other.active && deviceCount == other.deviceCount
 				&& Objects.equals(deviceOwner, other.deviceOwner) && Objects.equals(devices, other.devices)
-				&& Objects.equals(passwords, other.passwords) && Objects.equals(events, other.events) && Objects.equals(role, other.role)
-				&& Objects.equals(uid, other.uid) && Objects.equals(userData, other.userData);
+				&& Objects.equals(passwords, other.passwords) && Objects.equals(events, other.events)
+				&& Objects.equals(role, other.role) && Objects.equals(uid, other.uid)
+				&& Objects.equals(userData, other.userData);
 	}
 
 	public boolean isActive() {

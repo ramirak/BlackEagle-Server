@@ -58,15 +58,10 @@ public class CustomUsernamePasswordAuthFilter extends UsernamePasswordAuthentica
 	@Override
 	protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
 			Authentication authResult) throws IOException, ServletException {
-		
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 	    securityContext.setAuthentication(authResult);
-		  // Create a new session and add the security context.
-	   // request.getRemoteAddr();
-	    Map<String, Object> eventAttr = new TreeMap<>();
-	    eventAttr.put(EventKey.IP_ADDR.name(), request.getRemoteAddr());
-	    
-	    eventJpa.createEvent(authResult.getName(), new EventEntity(EventType.NEW_LOGIN.name(),new Date(),new ObjectMapper().writeValueAsString(eventAttr)));
+	    eventJpa.createEvent(authResult.getName(), EventType.NEW_LOGIN);
+		// Create a new session and add the security context.
 	    HttpSession session = request.getSession(true);
 	    session.setAttribute("SPRING_SECURITY_CONTEXT", securityContext);
 		

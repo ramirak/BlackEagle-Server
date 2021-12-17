@@ -104,8 +104,9 @@ public class PasswordEntity implements Serializable, Comparable<PasswordEntity> 
 
 	@Override
 	public int compareTo(PasswordEntity o) {
-		if(o.getCreationTime() == null) // TODO: check why null
-			return 1;
+	//	if(o.getCreationTime() == null) // TODO: check why null
+		//	return -1;
+	
 		return this.creationTime.compareTo(o.creationTime);
 	}
 
