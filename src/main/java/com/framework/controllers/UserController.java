@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.framework.boundaries.UserBoundary;
+import com.framework.boundaries.UserLoginDetails;
 import com.framework.logic.UserService;
 
 @RestController
@@ -19,7 +20,16 @@ public class UserController {
 	public void setUserService(UserService userService) {
 		this.userService = userService;
 	}
-
+	
+	@RequestMapping(path = "/login", 
+			method = RequestMethod.POST, 
+			produces = MediaType.APPLICATION_JSON_VALUE, 
+			consumes = MediaType.APPLICATION_JSON_VALUE)
+	public String login(@RequestBody UserLoginDetails userDetails) {
+		return "/login";
+	}
+	
+	
 	@RequestMapping(path = "/users/register", 
 			method = RequestMethod.POST, 
 			produces = MediaType.APPLICATION_JSON_VALUE, 

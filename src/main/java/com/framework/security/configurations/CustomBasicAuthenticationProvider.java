@@ -54,7 +54,6 @@ public class CustomBasicAuthenticationProvider implements AuthenticationProvider
 			throw new NotFoundException("Unable to find current active password");
 		
 		PasswordEntity pe = existingPass.get();
-	    System.out.println("@@@@@@@@@@@@@@@@@ testing from custom auth provider @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 	    if (passwordEncoder.matches(password, pe.getPassword())) {
 	        Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
 	        return new UsernamePasswordAuthenticationToken(username, password, authorities);

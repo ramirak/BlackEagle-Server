@@ -10,14 +10,6 @@ import com.framework.exceptions.UnauthorizedRequest;
 
 @Service
 public class Validations {
-	
-	public void assertValidRole(String role) {
-		for (UserRole ur : UserRole.values()) {
-			if (ur.name().equals(role))
-				return;
-		}
-		throw new BadRequestException("Invalid role");
-	}
 
 	public void assertNull(Object obj) {
 		if (obj == null)

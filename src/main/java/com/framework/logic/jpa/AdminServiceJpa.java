@@ -49,7 +49,12 @@ public class AdminServiceJpa implements AdminService {
 	public void setUeConverter(UserEntityConverterImplementation ueConverter) {
 		this.ueConverter = ueConverter;
 	}
-
+	@Override
+	public UserBoundary designateUser(UserBoundary user) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	@Override
 	public UserBoundary getSpecificUser(String email) {
 		// TODO Check if current role is Admin
@@ -92,9 +97,7 @@ public class AdminServiceJpa implements AdminService {
 		if (existingUser.isPresent()) {
 			passwordDao.deleteById(email);
 			userDao.deleteById(email);
-
 		}
 		throw new NotFoundException("User does not exists in the database");
 	}
-
 }

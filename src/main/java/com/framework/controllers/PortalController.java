@@ -13,15 +13,7 @@ public class PortalController {
 	public String welcome() {
 		return "/welcome";
 	}
-	
-	@RequestMapping(path = "/login", 
-			method = RequestMethod.POST, 
-			produces = MediaType.APPLICATION_JSON_VALUE, 
-			consumes = MediaType.APPLICATION_JSON_VALUE)
-	public String login(@RequestBody UserBoundary userDetails) {
-		return "/login";
-	}
-	
+
 	@RequestMapping(path = "/login2FA", method = RequestMethod.POST)
 	public String login2FA() {
 		return "/login2FA";
