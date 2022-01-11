@@ -1,5 +1,6 @@
 package com.framework.logic.jpa;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -13,19 +14,21 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.SessionAttribute;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.framework.boundaries.DataBoundary;
+import com.framework.constants.ServerDefaults;
+import com.framework.constants.UserRole;
 import com.framework.data.DataEntity;
 import com.framework.data.UserEntity;
 import com.framework.data.dao.DataDao;
 import com.framework.data.dao.UserDao;
-import com.framework.datatypes.UserRole;
 import com.framework.exceptions.NotFoundException;
 import com.framework.logic.DataService;
 import com.framework.logic.converters.DataEntityConverterImplementation;
 import com.framework.logic.converters.JsonConverter;
 import com.framework.security.sessions.SessionAttributes;
+import com.framework.utilities.UserFiles;
 import com.framework.utilities.Validations;
 
 @Service
@@ -36,8 +39,14 @@ public class DataServiceJpa implements DataService {
 	private UserDao userDao;
 	private Validations validations;
 	private SessionAttributes session;
+	private UserFiles userFiles;
 
 	public DataServiceJpa() {
+	}
+
+	@Autowired
+	public void setUserFiles(UserFiles userFiles) {
+		this.userFiles = userFiles;
 	}
 
 	@Autowired
@@ -64,26 +73,32 @@ public class DataServiceJpa implements DataService {
 	public void setDataDao(DataDao dataDao) {
 		this.dataDao = dataDao;
 	}
-	
+
 	@Autowired
 	public void setValidations(Validations validations) {
 		this.validations = validations;
 	}
 
 	@Override
-	@Transactional
-	public DataBoundary addData(String deviceId, DataBoundary newData) {
-		validations.assertNull(deviceId);
+	public DataBoundary addData(String ownerId, DataBoundary newData, MultipartFile file) {
+		System.out.println(file.getOriginalFilename() + " " + file.getSize());
+		System.out.println(newData.getDataType() + " " + newData.getDataAttributes());
+
+		validations.assertNull(ownerId);
 		validations.assertNull(newData);
 		validations.assertNull(newData.getDataType());
 
 		// TODO: Encryption of Data
 
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
-		UserEntity existingDevice = userDao.findById(deviceId)
-				.orElseThrow(() -> new NotFoundException("Device not found: " + deviceId));
+		UserEntity existingOwner = userDao.findById(ownerId)
+				.orElseThrow(() -> new NotFoundException("User not found: " + ownerId));
 
-		validations.assertOwnership(authenticatedUser, existingDevice.getDeviceOwner().getUid());
+		System.out.println(authenticatedUser);
+		System.out.println(ownerId);
+		
+		if (!ownerId.equals(authenticatedUser))
+			validations.assertOwnership(authenticatedUser, existingOwner.getDeviceOwner().getUid());
 
 		String newUID = UUID.randomUUID().toString();
 
@@ -94,12 +109,17 @@ public class DataServiceJpa implements DataService {
 
 		newData.setDataId(newUID);
 		newData.setCreatedTimestamp(new Date());
+
 		DataEntity dataEntity = this.deConverter.fromBoundary(newData);
+		existingOwner.addDataToUser(dataEntity);
 
-		existingDevice.addDataToUser(dataEntity);
-
+		try {
+			userFiles.saveUploadedFile(file, ServerDefaults.SERVER_USER_DATA_PATH + "/" + existingOwner.getUid() + "/", newUID);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		this.dataDao.save(dataEntity);
-		this.userDao.save(existingDevice);
+		this.userDao.save(existingOwner);
 		return this.deConverter.toBoundary(dataEntity);
 
 	}
@@ -214,4 +234,5 @@ public class DataServiceJpa implements DataService {
 		return this.dataDao.findAll(PageRequest.of(page, size, Direction.DESC, "createdTimestamp", "dataId"))
 				.getContent().stream().map(this.deConverter::toBoundary).collect(Collectors.toList());
 	}
+
 }

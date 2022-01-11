@@ -39,7 +39,7 @@ public class UserEntity {
 	@OneToMany(mappedBy = "deviceOwner", cascade = CascadeType.ALL)
 	private Set<UserEntity> devices;
 
-	@OneToMany(mappedBy = "dataOwner", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "dataOwner")
 	private Set<DataEntity> userData;
 
 	@SortNatural

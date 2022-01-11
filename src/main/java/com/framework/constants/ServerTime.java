@@ -1,6 +1,6 @@
 package com.framework.constants;
 
-public interface Times {
+public interface ServerTime {
 	public final int 
 	minute = 60,
 	hour = 60 * minute,

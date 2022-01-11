@@ -5,8 +5,8 @@ import java.util.Map;
 
 import javax.persistence.Lob;
 
+import com.framework.constants.UserData;
 import com.framework.data.UserEntity;
-import com.framework.datatypes.UserData;
 
 public class DataBoundary {
 	private String dataId;

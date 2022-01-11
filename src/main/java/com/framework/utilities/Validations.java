@@ -4,7 +4,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.framework.datatypes.UserRole;
+import com.framework.constants.UserRole;
 import com.framework.exceptions.BadRequestException;
 import com.framework.exceptions.UnauthorizedRequest;
 

@@ -17,14 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.framework.boundaries.PasswordBoundary;
 import com.framework.boundaries.UserBoundary;
+import com.framework.constants.EventType;
+import com.framework.constants.UserRole;
 import com.framework.data.EventEntity;
 import com.framework.data.PasswordEntity;
 import com.framework.data.UserEntity;
 import com.framework.data.dao.EventDao;
 import com.framework.data.dao.PasswordDao;
 import com.framework.data.dao.UserDao;
-import com.framework.datatypes.EventType;
-import com.framework.datatypes.UserRole;
 import com.framework.exceptions.AlreadyExistingException;
 import com.framework.exceptions.NotFoundException;
 import com.framework.exceptions.UnauthorizedRequest;

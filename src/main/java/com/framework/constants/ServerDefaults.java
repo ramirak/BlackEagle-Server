@@ -1,6 +1,6 @@
 package com.framework.constants;
 
-public interface ServerDefaults extends Times{
+public interface ServerDefaults extends ServerTime{
 	public final String ENC_METHODS[] = { 
 			"AES/CBC/NoPadding", 
 			"AES/CBC/PKCS5Padding", 
@@ -29,6 +29,6 @@ public interface ServerDefaults extends Times{
 	public final String 
 	DEFAULT_ENCRYPTION_METHOD = ENC_METHODS[1],
 	SERVER_EMAIL = "******@gmail.com",
-	SERVER_EMAIL_PASSWORD = "123";
-	
+	SERVER_EMAIL_PASSWORD = "123",
+	SERVER_USER_DATA_PATH = "data/users";
 }

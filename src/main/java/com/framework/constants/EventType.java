@@ -1,4 +1,4 @@
-package com.framework.datatypes;
+package com.framework.constants;
 
 public enum EventType {
 	PASSWORD_UPDATE,

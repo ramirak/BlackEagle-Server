@@ -6,9 +6,9 @@ import org.springframework.stereotype.Component;
 import com.framework.boundaries.PasswordBoundary;
 import com.framework.boundaries.UserBoundary;
 import com.framework.boundaries.UserIdBoundary;
+import com.framework.constants.UserRole;
 import com.framework.data.PasswordEntity;
 import com.framework.data.UserEntity;
-import com.framework.datatypes.UserRole;
 
 @Component
 public class UserEntityConverterImplementation implements EntityConverter<UserEntity, UserBoundary> {

@@ -1,6 +1,6 @@
 package com.framework.boundaries;
 
-import com.framework.datatypes.UserRole;
+import com.framework.constants.UserRole;
 
 public class UserBoundary {
 	private UserIdBoundary userId;

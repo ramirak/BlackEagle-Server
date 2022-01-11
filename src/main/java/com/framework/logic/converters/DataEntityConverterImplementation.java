@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.framework.boundaries.DataBoundary;
+import com.framework.constants.UserData;
 import com.framework.data.DataEntity;
-import com.framework.datatypes.UserData;
 
 @Component
 public class DataEntityConverterImplementation implements EntityConverter<DataEntity, DataBoundary> {

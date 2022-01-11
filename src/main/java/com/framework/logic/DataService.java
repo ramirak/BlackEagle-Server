@@ -2,11 +2,15 @@ package com.framework.logic;
 
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.framework.boundaries.DataBoundary;
 
 public interface DataService {
-	public DataBoundary addData(String deviceId, DataBoundary newData);
-	
+
+
+	public DataBoundary addData(String ownerId, DataBoundary newData, MultipartFile file);
+
 	public DataBoundary updateData(DataBoundary update);
 	
 	public DataBoundary deleteData(String deviceId, String dataId);

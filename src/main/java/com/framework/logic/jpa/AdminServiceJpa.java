@@ -11,10 +11,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import com.framework.boundaries.UserBoundary;
+import com.framework.constants.UserRole;
 import com.framework.data.UserEntity;
 import com.framework.data.dao.PasswordDao;
 import com.framework.data.dao.UserDao;
-import com.framework.datatypes.UserRole;
 import com.framework.exceptions.NotFoundException;
 import com.framework.logic.AdminService;
 import com.framework.logic.converters.UserEntityConverterImplementation;

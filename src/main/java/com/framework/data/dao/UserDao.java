@@ -7,8 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 
+import com.framework.constants.UserRole;
 import com.framework.data.UserEntity;
-import com.framework.datatypes.UserRole;
 
 public interface UserDao extends PagingAndSortingRepository<UserEntity, String> {
 	

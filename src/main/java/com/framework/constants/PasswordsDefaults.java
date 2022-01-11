@@ -1,6 +1,6 @@
 package com.framework.constants;
 
-public interface PasswordsDefaults extends Times {
+public interface PasswordsDefaults extends ServerTime {
 	/**Adjust default password configurations
 	*/
 	public final int 

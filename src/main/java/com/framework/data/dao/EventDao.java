@@ -7,8 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 
+import com.framework.constants.EventType;
 import com.framework.data.EventEntity;
-import com.framework.datatypes.EventType;
 
 public interface EventDao extends PagingAndSortingRepository<EventEntity, String> {
 	

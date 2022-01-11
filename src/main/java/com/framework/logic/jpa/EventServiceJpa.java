@@ -9,12 +9,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Service;
 
+import com.framework.constants.EventKey;
+import com.framework.constants.EventType;
 import com.framework.data.EventEntity;
 import com.framework.data.UserEntity;
 import com.framework.data.dao.EventDao;
 import com.framework.data.dao.UserDao;
-import com.framework.datatypes.EventKey;
-import com.framework.datatypes.EventType;
 import com.framework.exceptions.NotFoundException;
 import com.framework.logic.EventService;
 import com.framework.logic.converters.JsonConverter;
