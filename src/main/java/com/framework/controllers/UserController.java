@@ -20,16 +20,7 @@ public class UserController {
 	public void setUserService(UserService userService) {
 		this.userService = userService;
 	}
-	
-	@RequestMapping(path = "/login", 
-			method = RequestMethod.POST, 
-			produces = MediaType.APPLICATION_JSON_VALUE, 
-			consumes = MediaType.APPLICATION_JSON_VALUE)
-	public String login(@RequestBody UserLoginDetails userDetails) {
-		return "/login";
-	}
-	
-	
+
 	@RequestMapping(path = "/users/register", 
 			method = RequestMethod.POST, 
 			produces = MediaType.APPLICATION_JSON_VALUE, 

@@ -29,6 +29,7 @@ public class UserEntity {
 	@Id
 	private String uid;
 	private String role;
+	private String name;
 	private int deviceCount;
 	private boolean active;
 
@@ -63,6 +64,14 @@ public class UserEntity {
 
 	public void setUid(String uid) {
 		this.uid = uid;
+	}
+	
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public String getRole() {
@@ -163,7 +172,7 @@ public class UserEntity {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(active, deviceCount, deviceOwner, role, uid);
+		return Objects.hash(active, deviceCount, deviceOwner, role, name, uid);
 	}
 
 	@Override
@@ -178,7 +187,7 @@ public class UserEntity {
 		return active == other.active && deviceCount == other.deviceCount
 				&& Objects.equals(deviceOwner, other.deviceOwner) && Objects.equals(devices, other.devices)
 				&& Objects.equals(passwords, other.passwords) && Objects.equals(events, other.events)
-				&& Objects.equals(role, other.role) && Objects.equals(uid, other.uid)
+				&& Objects.equals(role, other.role) &&  Objects.equals(name, other.name) && Objects.equals(uid, other.uid)
 				&& Objects.equals(userData, other.userData);
 	}
 
@@ -189,5 +198,6 @@ public class UserEntity {
 	public void setActive(boolean active) {
 		this.active = active;
 	}
+
 
 }

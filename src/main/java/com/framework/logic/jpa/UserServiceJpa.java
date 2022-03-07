@@ -28,6 +28,7 @@ import com.framework.data.dao.UserDao;
 import com.framework.exceptions.AlreadyExistingException;
 import com.framework.exceptions.NotFoundException;
 import com.framework.exceptions.UnauthorizedRequest;
+import com.framework.exceptions.WeakPasswordException;
 import com.framework.logic.UserService;
 import com.framework.logic.converters.PasswordEntityConverterImlementation;
 import com.framework.logic.converters.UserEntityConverterImplementation;
@@ -100,6 +101,7 @@ public class UserServiceJpa implements UserService {
 	public UserBoundary register(UserBoundary user) {
 		utils.assertNull(user);
 		utils.assertNull(user.getUserId());
+		utils.assertNull(user.getName());
 		utils.assertEmptyString(user.getUserId().getUID());
 		utils.assertNull(user.getUserId().getPasswordBoundary());
 		utils.assertEmptyString(user.getUserId().getPasswordBoundary().getPassword());
@@ -108,6 +110,9 @@ public class UserServiceJpa implements UserService {
 		user.setRole(UserRole.PLAYER);
 		user.setActive(true);
 		// Hash the password before converting to entity
+		if (!passwordRules.checkPassword(user.getUserId().getPasswordBoundary().getPassword())) 
+			throw new WeakPasswordException("Password does not meet the minimum requirenments");
+		
 		String hashedPass = passwordEncoder.encode(user.getUserId().getPasswordBoundary().getPassword());
 		user.getUserId().getPasswordBoundary().setPassword(hashedPass);
 		// Convert and save to database if the user is not already exits
@@ -149,6 +154,10 @@ public class UserServiceJpa implements UserService {
 			existingEntity.setActive(update.getActive());
 			dirty = true;
 		}
+		if(update.getName() != null) {
+			existingEntity.setName(update.getName());
+			dirty = true;
+		}
 		// The user requests to change his password
 		if (updatedPassBoundary != null && newPassword != null && updatedPassBoundary.getHint() != null) {
 			utils.assertEmptyString(updatedPassBoundary.getHint());
@@ -160,8 +169,7 @@ public class UserServiceJpa implements UserService {
 			if (!passwordRules.isPasswordInHistory(newPassword, existingEntity.getPasswords())) {
 				// Check if the new password is a valid password
 				if (passwordRules.checkPassword(newPassword)) {
-					// If all the checks are passed, proceed to updating the entity with the new
-					// password
+					// If all the checks are passed, proceed to updating the entity with the new password
 					updatedPassBoundary.setPassword(passwordEncoder.encode(newPassword));
 					updatedPassBoundary.setCreationTime(new Date());
 					PasswordEntity newPassEntity = peConverter.fromBoundary(updatedPassBoundary);
@@ -170,6 +178,8 @@ public class UserServiceJpa implements UserService {
 						passwordDao.delete(oldPasswordEntity.get());
 					eventServiceJpa.createEvent(authenticatedUser, EventType.PASSWORD_UPDATE);
 					dirty = true;
+				}else{
+					throw new WeakPasswordException("Password does not meet the minimum requirenments");
 				}
 			}else
 				throw new AlreadyExistingException("Password was already used in the past");

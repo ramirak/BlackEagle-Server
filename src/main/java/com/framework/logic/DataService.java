@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.framework.boundaries.DataBoundary;
+import com.framework.constants.UserData;
 
 public interface DataService {
 
@@ -19,5 +20,5 @@ public interface DataService {
 	
 	public DataBoundary getSpecificData(String deviceId, String dataId);
 	
-	public List<DataBoundary> getAllData(String deviceId, int page, int size);
+	public List<DataBoundary> getAllData(String deviceId,UserData type, int page, int size);
 }

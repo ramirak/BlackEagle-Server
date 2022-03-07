@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.framework.boundaries.DataBoundary;
 import com.framework.constants.ServerDefaults;
+import com.framework.constants.UserData;
 import com.framework.constants.UserRole;
 import com.framework.data.DataEntity;
 import com.framework.data.UserEntity;
@@ -96,7 +97,7 @@ public class DataServiceJpa implements DataService {
 
 		System.out.println(authenticatedUser);
 		System.out.println(ownerId);
-		
+
 		if (!ownerId.equals(authenticatedUser))
 			validations.assertOwnership(authenticatedUser, existingOwner.getDeviceOwner().getUid());
 
@@ -114,7 +115,8 @@ public class DataServiceJpa implements DataService {
 		existingOwner.addDataToUser(dataEntity);
 
 		try {
-			userFiles.saveUploadedFile(file, ServerDefaults.SERVER_USER_DATA_PATH + "/" + existingOwner.getUid() + "/", newUID);
+			userFiles.saveUploadedFile(file, ServerDefaults.SERVER_USER_DATA_PATH + "/" + existingOwner.getUid() + "/",
+					newUID);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -183,56 +185,49 @@ public class DataServiceJpa implements DataService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public DataBoundary getSpecificData(String deviceId, String dataId) {
-		validations.assertNull(deviceId);
+	public DataBoundary getSpecificData(String uid, String dataId) {
+		validations.assertNull(uid);
 		validations.assertNull(dataId);
-
+	
 		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
 				.getUsername();
 
-		// Get only users of role DEVICE
-		Optional<UserEntity> existingDevice = userDao.findByUidAndRole(deviceId, UserRole.DEVICE.name());
-		UserEntity deviceEntity;
-		if (existingDevice.isPresent()) {
-			deviceEntity = existingDevice.get();
-		} else
-			throw new NotFoundException("Device not found: " + deviceId);
+		if (uid != authenticatedUser) {
+			Optional<UserEntity> existingDevice = userDao.findById(uid);
+			UserEntity deviceEntity;
+			if (existingDevice.isPresent()) {
+				deviceEntity = existingDevice.get();
+			} else
+				throw new NotFoundException("Device not found: " + uid);
 
-		// check if device owned by the authenticated user
-		validations.assertOwnership(authenticatedUser, deviceEntity.getDeviceOwner().getUid());
-
-		Optional<DataEntity> existingData = this.dataDao.findById(dataId);
-		DataEntity dataEntity;
-		if (existingData.isPresent()) {
-			dataEntity = existingData.get();
-		} else
-			throw new NotFoundException("Could not find data by id " + dataId);
-
-		// Check if data owned by the device id
-		validations.assertOwnership(deviceEntity.getUid(), dataEntity.getDataOwner().getUid());
-
-		return this.deConverter.toBoundary(dataEntity);
+			validations.assertOwnership(authenticatedUser, deviceEntity.getDeviceOwner().getUid());
+		}
+		
+		return deConverter.toBoundary(dataDao.findByDataIdAndDataOwnerUid(dataId, uid));
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<DataBoundary> getAllData(String deviceId, int page, int size) {
-		validations.assertNull(deviceId);
+	public List<DataBoundary> getAllData(String uid, UserData type, int page, int size) {
+		validations.assertNull(uid);
 
 		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
 				.getUsername();
 
-		Optional<UserEntity> existingDevice = userDao.findByUidAndRole(deviceId, UserRole.DEVICE.name());
-		UserEntity deviceEntity;
-		if (existingDevice.isPresent()) {
-			deviceEntity = existingDevice.get();
-		} else
-			throw new NotFoundException("Device not found: " + deviceId);
+		if (uid != authenticatedUser) {
+			Optional<UserEntity> existingDevice = userDao.findById(uid);
+			UserEntity deviceEntity;
+			if (existingDevice.isPresent()) {
+				deviceEntity = existingDevice.get();
+			} else
+				throw new NotFoundException("Device not found: " + uid);
 
-		validations.assertOwnership(authenticatedUser, deviceEntity.getDeviceOwner().getUid());
-
-		return this.dataDao.findAll(PageRequest.of(page, size, Direction.DESC, "createdTimestamp", "dataId"))
-				.getContent().stream().map(this.deConverter::toBoundary).collect(Collectors.toList());
+			validations.assertOwnership(authenticatedUser, deviceEntity.getDeviceOwner().getUid());
+		}
+		return this.dataDao
+				.findAllByDataOwnerUidAndDataType(uid, type,
+						PageRequest.of(page, size, Direction.DESC, "createdTimestamp"))
+				.stream().map(this.deConverter::toBoundary).collect(Collectors.toList());
 	}
 
 }

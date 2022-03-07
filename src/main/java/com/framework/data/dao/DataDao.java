@@ -13,10 +13,9 @@ import com.framework.data.UserEntity;
 
 public interface DataDao extends PagingAndSortingRepository<DataEntity, String> {
 
-	public List<DataEntity> findAllByDataOwnerUidAndDataType(@Param("uid") UserEntity dataOwner, UserData type,
-			Pageable pageable);
+	public DataEntity findByDataIdAndDataOwnerUid(@Param("uid") String dataUid, String ownerUid);
 
-	public List<DataEntity> findAllByDataOwnerUidAndDataTypeAndCreatedTimestamp(@Param("uid") UserEntity dataOwner,
-			UserData type, Date createdTimestamp, Pageable pageable);
+	public List<DataEntity> findAllByDataOwnerUidAndDataType(@Param("uid") String uid, UserData type,
+			Pageable pageable);
 
 }

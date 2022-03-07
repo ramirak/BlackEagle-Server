@@ -22,7 +22,7 @@ public class AdminController {
 			method = RequestMethod.POST, 
 			produces = MediaType.APPLICATION_JSON_VALUE, 
 			consumes = MediaType.APPLICATION_JSON_VALUE)
-	public UserBoundary register(@RequestBody UserBoundary newDetails) {
+	public UserBoundary designateUser(@RequestBody UserBoundary newDetails) {
 		return adminService.designateUser(newDetails);
 	}
 	
@@ -31,14 +31,7 @@ public class AdminController {
 		return adminService.getSpecificUser(email);
 	}
 
-	@RequestMapping(path = "/admins/getAll", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public UserBoundary[] getAllUsers(
-			@RequestParam(name = "page", required = false, defaultValue = "0") int page,
-			@RequestParam(name = "size", required = false, defaultValue = "5") int size) {
-		return adminService.getAllUsers(page, size).toArray(new UserBoundary[0]);
-	}
-
-	@RequestMapping(path = "/admins/reset/{userEmail}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/admins/reset/{userEmail}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
 	public UserBoundary resetPassword(@PathVariable("userEmail") String email) {
 		return adminService.resetPassword(email);
 	}

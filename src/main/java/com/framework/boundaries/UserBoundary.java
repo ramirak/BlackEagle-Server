@@ -5,6 +5,7 @@ import com.framework.constants.UserRole;
 public class UserBoundary {
 	private UserIdBoundary userId;
 	private UserRole role;
+	private String name;
 	private Boolean active;
 	private Integer deviceCount;
 	private UserBoundary owner;
@@ -41,5 +42,11 @@ public class UserBoundary {
 	}
 	public void setOwner(UserBoundary owner) {
 		this.owner = owner;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
 	} 
 }

@@ -66,16 +66,6 @@ public class AdminServiceJpa implements AdminService {
 		throw new NotFoundException("User does not exists in the database");
 	}
 
-	// Retrieve only real users and not devices
-	@Override
-	public List<UserBoundary> getAllUsers(int page, int size) {
-		// TODO Check if current role is Admin
-		utils.assertAuthorizedOperation("ADMIN");
-		return this.userDao
-				.findAllByActiveAndRole(true, UserRole.PLAYER, PageRequest.of(page, size, Direction.DESC, "username"))
-				.stream().map(this.ueConverter::toBoundary).collect(Collectors.toList());
-	}
-
 	@Override
 	public UserBoundary resetPassword(String email) {
 		// TODO Check if current role is Admin

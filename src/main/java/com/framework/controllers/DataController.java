@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.framework.boundaries.DataBoundary;
+import com.framework.constants.UserData;
 import com.framework.logic.DataService;
 
 @RestController
@@ -57,11 +58,11 @@ public class DataController {
 		return dataService.getSpecificData(deviceId, dataId);
 	}
 
-	@RequestMapping(path = "/data/get/{deviceId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public DataBoundary[] getAllData(@PathVariable("deviceId") String deviceId,
+	@RequestMapping(path = "/data/get/{deviceId}/{dataType}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public DataBoundary[] getAllData(@PathVariable("deviceId") String deviceId, @PathVariable("dataType") UserData type,
 			@RequestParam(name = "page", required = false, defaultValue = "0") int page,
 			@RequestParam(name = "size", required = false, defaultValue = "5") int size) {
-		return dataService.getAllData(deviceId, page, size).toArray(new DataBoundary[0]);
+		return dataService.getAllData(deviceId,type, page, size).toArray(new DataBoundary[0]);
 	}
 
 }

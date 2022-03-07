@@ -25,6 +25,7 @@ import com.framework.data.PasswordEntity;
 import com.framework.data.UserEntity;
 import com.framework.data.dao.PasswordDao;
 import com.framework.data.dao.UserDao;
+import com.framework.exceptions.ForbiddenException;
 import com.framework.exceptions.LimitExceededException;
 import com.framework.exceptions.NotFoundException;
 import com.framework.logic.DeviceService;
@@ -78,11 +79,11 @@ public class DeviceServiceJpa implements DeviceService {
 	@Override
 	public UserBoundary addDevice(UserBoundary device) {
 		utils.assertNull(device);
+		utils.assertNull(device.getName());
 
 		String authenticatedUser = SecurityContextHolder.getContext().getAuthentication().getName();
 
-		UserEntity existingUser = userDao.findById(authenticatedUser)
-				.orElseThrow(() -> new NotFoundException("User not found"));
+		UserEntity existingUser = userDao.findById(authenticatedUser).get();
 
 		if (existingUser.getDeviceCount() >= ServerDefaults.MAX_NUM_DEVICES)
 			throw new LimitExceededException("Device count exceeded");
@@ -128,21 +129,25 @@ public class DeviceServiceJpa implements DeviceService {
 		utils.assertNull(update);
 		utils.assertNull(update.getUserId());
 
+		boolean dirty = false;
 		String authenticatedUser = SecurityContextHolder.getContext().getAuthentication().getName();
 
-		utils.assertOwnership(authenticatedUser, update.getUserId().getUID());
+		Optional<UserEntity> existingDevice = this.userDao.findById(update.getUserId().getUID());
+		if (!existingDevice.isPresent())
+			throw new NotFoundException("Could not find device by id " + update.getUserId().getUID());
 
-		Optional<UserEntity> existingDevice = userDao.findById(update.getUserId().getUID());
-		if (existingDevice.isPresent()) {
-			UserEntity deviceEntity = existingDevice.get();
+		UserEntity deviceOwner = existingDevice.get().getDeviceOwner();
 
-			// TODO: What we need to update?!
+		utils.assertOwnership(authenticatedUser, deviceOwner.getUid());
 
-			deviceEntity = this.userDao.save(deviceEntity);
-			return this.ueConverter.toBoundary(deviceEntity);
-		} else {
-			throw new NotFoundException("Could not find device in the database");
+		UserEntity deviceEntity = existingDevice.get();
+		if (update.getName() != null) {
+			deviceEntity.setName(update.getName());
+			dirty = true;
 		}
+		if (dirty)
+			deviceEntity = this.userDao.save(deviceEntity);
+		return this.ueConverter.toBoundary(deviceEntity);
 	}
 
 	@Override
@@ -155,12 +160,10 @@ public class DeviceServiceJpa implements DeviceService {
 
 		UserEntity deviceEntity = existingDevice.get();
 		UserEntity deviceOwner = deviceEntity.getDeviceOwner();
-		utils.assertOwnership(deviceOwner.getUid(), authenticatedUser);
-		/*
-		 * deviceEntity.getPasswords(). deviceOwner.getDevices().remove(deviceEntity);
-		 * 
-		 * this.userDao.save(deviceOwner);
-		 */
+		utils.assertOwnership(authenticatedUser, deviceOwner.getUid());
+
+		// TODO: delete data
+		// --------------------------------------------------------------------------------
 		this.userDao.delete(deviceEntity);
 		return ueConverter.toBoundary(deviceEntity);
 	}
@@ -168,35 +171,34 @@ public class DeviceServiceJpa implements DeviceService {
 	@Override
 	public UserBoundary getSpecificDevice(String deviceId) {
 		utils.assertNull(deviceId);
-
 		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
 				.getUsername();
+
 		Optional<UserEntity> existingDevice = this.userDao.findById(deviceId);
 		if (!existingDevice.isPresent())
 			throw new NotFoundException("Could not find device by id " + deviceId);
 
+		UserEntity deviceOwner = existingDevice.get().getDeviceOwner();
 		// check if device owned by the authenticated user
-		utils.assertOwnership(deviceId, authenticatedUser);
+		utils.assertOwnership(deviceOwner.getUid(), authenticatedUser);
 
-		UserEntity deviceEntity = existingDevice.get();
-		return this.ueConverter.toBoundary(deviceEntity);
+		return this.ueConverter.toBoundary(userDao
+				.findByActiveAndUidAndRoleAndDeviceOwnerUid(true, deviceId, UserRole.DEVICE, authenticatedUser).get());
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<UserBoundary> getAllDevices(String userId, int page, int size) {
-		utils.assertNull(userId);
-
+	public List<UserBoundary> getAllDevices(int page, int size) {
 		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
 				.getUsername();
-		UserEntity existingUser = userDao.findById(authenticatedUser)
-				.orElseThrow(() -> new NotFoundException("User not found: " + userId));
+		UserEntity existingUser = userDao.findById(authenticatedUser).get();
 
 		if (existingUser.getRole() == UserRole.PLAYER.name()) {
-			return this.userDao.findAllByActive(true, PageRequest.of(page, size, Direction.DESC, "XXXXX", "deviceId"))
+			return this.userDao
+					.findAllByActiveAndRoleAndDeviceOwnerUid(true, UserRole.DEVICE, authenticatedUser,
+							PageRequest.of(page, size, Direction.DESC, "name"))
 					.stream().map(this.ueConverter::toBoundary).collect(Collectors.toList());
-		}
-		return this.userDao.findAll(PageRequest.of(page, size, Direction.DESC, "XXXXX", "deviceId")).getContent()
-				.stream().map(this.ueConverter::toBoundary).collect(Collectors.toList());
+		} else
+			throw new ForbiddenException();
 	}
 }

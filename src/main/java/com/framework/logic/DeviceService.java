@@ -13,7 +13,7 @@ public interface DeviceService {
 	
 	public UserBoundary getSpecificDevice(String deviceId); 
 	
-	public List<UserBoundary> getAllDevices(String userId, int page, int size);
+	public List<UserBoundary> getAllDevices(int page, int size);
 
 
 	

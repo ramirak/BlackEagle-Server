@@ -11,17 +11,10 @@ import com.framework.constants.UserRole;
 import com.framework.data.UserEntity;
 
 public interface UserDao extends PagingAndSortingRepository<UserEntity, String> {
-	
-	public List<UserEntity> findAllByActiveAndRole(
-			@Param("active") boolean active,
-			UserRole role,
-			Pageable pageable);
 
-	public Optional<UserEntity> findByUidAndRole(
-			@Param("uid") String uid,
-			String role);
-	
-	public List<UserEntity> findAllByActive(
-			@Param("active") boolean active,
-			Pageable pageable);
+	public List<UserEntity> findAllByActiveAndRoleAndDeviceOwnerUid(@Param("active") boolean active, UserRole role,
+			String ownerUid, Pageable pageable);
+
+	public Optional<UserEntity> findByActiveAndUidAndRoleAndDeviceOwnerUid(@Param("active") boolean active, String uid,
+			UserRole role, String ownerUid);
 }
