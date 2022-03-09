@@ -2,26 +2,20 @@ package com.framework.logic.jpa;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.framework.boundaries.DataBoundary;
 import com.framework.constants.DataKeyValue;
 import com.framework.constants.ServerDefaults;
 import com.framework.constants.UserData;
-import com.framework.constants.UserRole;
 import com.framework.data.DataEntity;
 import com.framework.data.UserEntity;
 import com.framework.data.dao.DataDao;
@@ -110,7 +104,8 @@ public class DataServiceJpa implements DataService {
 			newData.getDataAttributes().put(DataKeyValue.REQUEST_STATE.name(), DataKeyValue.REQUEST_READY.name());
 			// Check if the request type is valid
 			if (newData.getDataAttributes().containsKey(DataKeyValue.REQUEST_TYPE.name())) {
-				validations.assertValidDataType(newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name()).toString());
+				validations.assertValidDataType(
+						newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name()).toString());
 			}
 
 			// Get all requests for current user

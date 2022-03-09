@@ -1,6 +1,5 @@
 package com.framework.logic;
 
-import java.util.List;
 import com.framework.boundaries.UserBoundary;
 
 public interface AdminService {

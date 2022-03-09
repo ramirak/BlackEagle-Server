@@ -18,8 +18,6 @@ import org.springframework.stereotype.Component;
 import com.framework.data.PasswordEntity;
 import com.framework.data.dao.PasswordDao;
 import com.framework.exceptions.NotFoundException;
-import com.framework.logic.UserService;
-import com.framework.logic.jpa.UserServiceJpa;
 
 @Component
 public class CustomBasicAuthenticationProvider implements AuthenticationProvider {

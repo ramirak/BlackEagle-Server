@@ -4,7 +4,6 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
@@ -25,6 +24,7 @@ public class JsonConverterImplementation implements JsonConverter {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Map<String, Object> JSONToMap(String json) {
 		try {

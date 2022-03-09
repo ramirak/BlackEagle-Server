@@ -1,17 +1,11 @@
 package com.framework.security.configurations;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.Map;
-import java.util.TreeMap;
-
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,14 +13,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.stereotype.Component;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.framework.boundaries.UserBoundary;
-import com.framework.boundaries.UserIdBoundary;
 import com.framework.boundaries.UserLoginDetails;
 import com.framework.constants.EventType;
-import com.framework.data.EventEntity;
 import com.framework.logic.jpa.EventServiceJpa;
 
 public class CustomUsernamePasswordAuthFilter extends UsernamePasswordAuthenticationFilter {

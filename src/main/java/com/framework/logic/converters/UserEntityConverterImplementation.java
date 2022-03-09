@@ -7,7 +7,6 @@ import com.framework.boundaries.PasswordBoundary;
 import com.framework.boundaries.UserBoundary;
 import com.framework.boundaries.UserIdBoundary;
 import com.framework.constants.UserRole;
-import com.framework.data.PasswordEntity;
 import com.framework.data.UserEntity;
 
 @Component

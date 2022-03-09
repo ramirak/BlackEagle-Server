@@ -5,8 +5,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Service;
 
 import com.framework.constants.DataKeyValue;
@@ -17,7 +15,6 @@ import com.framework.data.dao.EventDao;
 import com.framework.data.dao.UserDao;
 import com.framework.exceptions.NotFoundException;
 import com.framework.logic.EventService;
-import com.framework.logic.converters.JsonConverter;
 import com.framework.logic.converters.JsonConverterImplementation;
 import com.framework.security.sessions.SessionAttributes;
 
