@@ -15,7 +15,7 @@ public interface DataDao extends PagingAndSortingRepository<DataEntity, String> 
 
 	public DataEntity findByDataIdAndDataOwnerUid(@Param("uid") String dataUid, String ownerUid);
 
-	public List<DataEntity> findAllByDataOwnerUidAndDataType(@Param("uid") String uid, UserData type,
-			Pageable pageable);
+	public List<DataEntity> findAllByDataTypeAndDataOwnerUid(String type, String uid, Pageable pageable);
 
+	public List<DataEntity> findAllByDataTypeAndDataOwnerUid(String type, String uid);
 }

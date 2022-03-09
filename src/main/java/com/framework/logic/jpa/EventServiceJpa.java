@@ -9,7 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Service;
 
-import com.framework.constants.EventKey;
+import com.framework.constants.DataKeyValue;
 import com.framework.constants.EventType;
 import com.framework.data.EventEntity;
 import com.framework.data.UserEntity;
@@ -26,7 +26,7 @@ public class EventServiceJpa implements EventService{
 	private EventDao eventDao;
 	private UserDao userDao;
 	private JsonConverterImplementation jsonConverter;
-	private SessionAttributes sessionAttr;
+	private SessionAttributes session;
 	
 	@Autowired
 	public void setEventDao(EventDao eventDao) {
@@ -44,15 +44,15 @@ public class EventServiceJpa implements EventService{
 	}
 	
 	@Autowired
-	public void setSessionAttr(SessionAttributes sessionAttr) {
-		this.sessionAttr = sessionAttr;
+	public void setSession(SessionAttributes session) {
+		this.session = session;
 	}
 	
 	@Override
 	public EventEntity createEvent(String creator,EventType eventType) {
 	    Map<String, Object> eventAttr = new TreeMap<>();
 	    // Map the IP address to a new attribute
-	    eventAttr.put(EventKey.IP_ADDR.name(), sessionAttr.retrieveIpAddress());
+	    eventAttr.put(DataKeyValue.IP_ADDR.name(), session.retrieveIpAddress());
 	    
 		EventEntity newEvent = new EventEntity(eventType.name(), new Date(), jsonConverter.mapToJSON(eventAttr));
 		// Find the corresponding user in the database

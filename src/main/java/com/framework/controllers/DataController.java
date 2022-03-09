@@ -29,7 +29,7 @@ public class DataController {
 			produces = MediaType.APPLICATION_JSON_VALUE, 
 			consumes = {MediaType.MULTIPART_FORM_DATA_VALUE , MediaType.APPLICATION_JSON_VALUE})
 	public DataBoundary addData(
-			@RequestParam("file") MultipartFile file,
+			@RequestParam(value = "file", required = false) MultipartFile file,
 			@RequestPart DataBoundary newData, @PathVariable("deviceId") String deviceId){
 		return dataService.addData(deviceId, newData, file);
 	}
@@ -58,7 +58,7 @@ public class DataController {
 		return dataService.getSpecificData(deviceId, dataId);
 	}
 
-	@RequestMapping(path = "/data/get/{deviceId}/{dataType}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/data/getAll/{deviceId}/{dataType}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public DataBoundary[] getAllData(@PathVariable("deviceId") String deviceId, @PathVariable("dataType") UserData type,
 			@RequestParam(name = "page", required = false, defaultValue = "0") int page,
 			@RequestParam(name = "size", required = false, defaultValue = "5") int size) {

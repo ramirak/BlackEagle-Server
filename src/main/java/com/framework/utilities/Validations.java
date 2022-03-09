@@ -4,6 +4,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.framework.constants.UserData;
 import com.framework.constants.UserRole;
 import com.framework.exceptions.BadRequestException;
 import com.framework.exceptions.UnauthorizedRequest;
@@ -23,13 +24,21 @@ public class Validations {
 
 	public void assertOwnership(String currentlyLoggedIn, String parentId) {
 		if (!parentId.equals(currentlyLoggedIn))
-			throw new UnauthorizedRequest("User does not own the requested data");	
+			throw new UnauthorizedRequest("User does not own the requested data");
 	}
-	
+
 	public void assertAuthorizedOperation(String userRole) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth == null || !auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(userRole))) 	
-		    throw new UnauthorizedRequest("User does not own the required privileges");		
+		if (auth == null || !auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(userRole)))
+			throw new UnauthorizedRequest("User does not own the required privileges");
 	}
-	
+
+	public void assertValidDataType(String type) {
+		for (UserData ud : UserData.values()) {
+			if (ud.name().equals(type)) {
+				return;
+			}
+		}
+		throw new BadRequestException("Invalid request type");
+	}
 }

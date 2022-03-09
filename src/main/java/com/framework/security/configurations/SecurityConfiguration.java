@@ -48,7 +48,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 				)
 				.hasAnyAuthority("PLAYER", "ADMIN")
 				.antMatchers(
-						"/data/add"
+						"/data/add",
+						"/data/getAll"
 				)
 				.hasAnyAuthority("DEVICE")
 				.antMatchers(

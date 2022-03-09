@@ -34,6 +34,7 @@ import com.framework.logic.converters.PasswordEntityConverterImlementation;
 import com.framework.logic.converters.UserEntityConverterImplementation;
 import com.framework.security.services.OTPService;
 import com.framework.security.services.PasswordValidations;
+import com.framework.security.sessions.SessionAttributes;
 import com.framework.utilities.Validations;
 
 @Service
@@ -47,6 +48,7 @@ public class UserServiceJpa implements UserService {
 	private PasswordValidations passwordRules;
 	private OTPService otpService;
 	private Validations utils;
+	private SessionAttributes session;
 
 	public UserServiceJpa() {
 	}
@@ -95,7 +97,12 @@ public class UserServiceJpa implements UserService {
 	public void setUtils(Validations utils) {
 		this.utils = utils;
 	}
-
+	
+	@Autowired
+	public void setSession(SessionAttributes session) {
+		this.session = session;
+	}
+	
 	@Override
 	@Transactional
 	public UserBoundary register(UserBoundary user) {
@@ -138,7 +145,8 @@ public class UserServiceJpa implements UserService {
 	@Override
 	public UserBoundary updateUser(UserBoundary update) {
 		// TODO get currently logged-in password details
-		String authenticatedUser = SecurityContextHolder.getContext().getAuthentication().getName();
+		String authenticatedUser = session.retrieveAuthenticatedUsername();
+
 		boolean dirty = false;
 		utils.assertOwnership(authenticatedUser, update.getUserId().getUID());
 
@@ -197,8 +205,8 @@ public class UserServiceJpa implements UserService {
 
 	@Override
 	public UserBoundary deleteAccount(String oneTimeKey) {
-		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-				.getUsername();
+		String authenticatedUser = session.retrieveAuthenticatedUsername();
+		
 		Optional<UserEntity> existingUser = userDao.findById(authenticatedUser);
 		if (!existingUser.isPresent())
 			throw new NotFoundException("User does not exists in the database");

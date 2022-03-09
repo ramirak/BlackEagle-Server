@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.framework.boundaries.UserBoundary;
 import com.framework.boundaries.UserIdBoundary;
 import com.framework.boundaries.UserLoginDetails;
-import com.framework.constants.EventKey;
 import com.framework.constants.EventType;
 import com.framework.data.EventEntity;
 import com.framework.logic.jpa.EventServiceJpa;

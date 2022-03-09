@@ -32,6 +32,7 @@ import com.framework.logic.DeviceService;
 import com.framework.logic.converters.PasswordEntityConverterImlementation;
 import com.framework.logic.converters.UserEntityConverterImplementation;
 import com.framework.security.services.EncryptionUtils;
+import com.framework.security.sessions.SessionAttributes;
 import com.framework.utilities.Validations;
 
 @Service
@@ -42,6 +43,7 @@ public class DeviceServiceJpa implements DeviceService {
 	private PasswordEntityConverterImlementation peConverter;
 	private PasswordEncoder passwordEncoder;
 	private Validations utils;
+	private SessionAttributes session;
 
 	public DeviceServiceJpa() {
 	}
@@ -75,13 +77,18 @@ public class DeviceServiceJpa implements DeviceService {
 	public void setUtils(Validations utils) {
 		this.utils = utils;
 	}
+	
+	@Autowired
+	public void setSession(SessionAttributes session) {
+		this.session = session;
+	}
 
 	@Override
 	public UserBoundary addDevice(UserBoundary device) {
 		utils.assertNull(device);
 		utils.assertNull(device.getName());
 
-		String authenticatedUser = SecurityContextHolder.getContext().getAuthentication().getName();
+		String authenticatedUser = session.retrieveAuthenticatedUsername();
 
 		UserEntity existingUser = userDao.findById(authenticatedUser).get();
 
@@ -130,7 +137,7 @@ public class DeviceServiceJpa implements DeviceService {
 		utils.assertNull(update.getUserId());
 
 		boolean dirty = false;
-		String authenticatedUser = SecurityContextHolder.getContext().getAuthentication().getName();
+		String authenticatedUser = session.retrieveAuthenticatedUsername();
 
 		Optional<UserEntity> existingDevice = this.userDao.findById(update.getUserId().getUID());
 		if (!existingDevice.isPresent())
@@ -152,7 +159,7 @@ public class DeviceServiceJpa implements DeviceService {
 
 	@Override
 	public UserBoundary deleteDevice(String deviceId) {
-		String authenticatedUser = SecurityContextHolder.getContext().getAuthentication().getName();
+		String authenticatedUser = session.retrieveAuthenticatedUsername();
 
 		Optional<UserEntity> existingDevice = this.userDao.findById(deviceId);
 		if (!existingDevice.isPresent())
@@ -171,8 +178,8 @@ public class DeviceServiceJpa implements DeviceService {
 	@Override
 	public UserBoundary getSpecificDevice(String deviceId) {
 		utils.assertNull(deviceId);
-		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-				.getUsername();
+		String authenticatedUser = session.retrieveAuthenticatedUsername();
+
 
 		Optional<UserEntity> existingDevice = this.userDao.findById(deviceId);
 		if (!existingDevice.isPresent())
@@ -189,8 +196,8 @@ public class DeviceServiceJpa implements DeviceService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<UserBoundary> getAllDevices(int page, int size) {
-		String authenticatedUser = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-				.getUsername();
+		String authenticatedUser = session.retrieveAuthenticatedUsername();
+
 		UserEntity existingUser = userDao.findById(authenticatedUser).get();
 
 		if (existingUser.getRole() == UserRole.PLAYER.name()) {
