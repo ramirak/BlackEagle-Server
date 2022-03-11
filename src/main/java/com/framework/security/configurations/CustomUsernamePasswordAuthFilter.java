@@ -10,6 +10,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -33,7 +34,8 @@ public class CustomUsernamePasswordAuthFilter extends UsernamePasswordAuthentica
 			throws AuthenticationException {
 		try {
 			// Get username & password from request (JSON) any way you like
-			UserLoginDetails authRequest = new ObjectMapper().readValue(request.getInputStream(), UserLoginDetails.class);
+			UserLoginDetails authRequest = new ObjectMapper().readValue(request.getInputStream(),
+					UserLoginDetails.class);
 			// TODO :test for null values
 			Authentication auth = new UsernamePasswordAuthenticationToken(authRequest.getUid(),
 					authRequest.getPassword());
@@ -48,7 +50,8 @@ public class CustomUsernamePasswordAuthFilter extends UsernamePasswordAuthentica
 			Authentication authResult) throws IOException, ServletException {
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 		securityContext.setAuthentication(authResult);
-		eventJpa.createEvent(authResult.getName(), EventType.NEW_LOGIN);
+		if (authResult.getAuthorities().contains(new SimpleGrantedAuthority("PLAYER"))) // Log only events for basic users
+			eventJpa.createEvent(authResult.getName(), EventType.NEW_LOGIN);
 		// Create a new session and add the security context.
 		HttpSession session = request.getSession(true);
 		session.setAttribute("SPRING_SECURITY_CONTEXT", securityContext);

@@ -20,8 +20,10 @@ public interface PasswordsDefaults extends ServerTime {
 
 	/** Prevent the use of common words */
 	public final boolean 
-	PREVENT_DICTIONARY = true;
+	PREVENT_DICTIONARY = true,
+	FORCE_SECOND_AUTHENTICATION = true;
 	
 	public final String 
-	DICTIONARY_FILE_PATH = " ";
+	DICTIONARY_FILE_PATH = " ",
+	TEMP_TOKEN = "PRE_AUTH";
 }

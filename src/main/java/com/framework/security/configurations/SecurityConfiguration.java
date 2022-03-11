@@ -34,39 +34,46 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 		http.cors().and().csrf().disable()
 				.addFilter(new CustomUsernamePasswordAuthFilter(authenticationManager(),eventJpa))
 				.authorizeRequests()
+				/**
+				 * ------------------------ RULES SUMMARY ------------------------
+				 * Users with role [PRE_AUTH] can not access [Admin/User/Device/Data] API
+				 * Users with role [Player, Device] can not access [Admin] API
+				 * Users with role [Device] can not access [User/Device] API
+				 * Users with role [Device] can not alter or remove data 
+				 * Users with role [Admin] can not access [Data] API 
+				 * ---------------------------------------------------------------
+				 */ 
 				.antMatchers( 
 						"/login", 
 						"/users/register"
 				)
 				.permitAll()
 				.antMatchers(
-						"/users/update", 
-						"/device/add" , 
-						"/device/delete", 
-						"/data/add",
-						"/data/update"
+						"/users/**"
 				)
 				.hasAnyAuthority("PLAYER", "ADMIN")
 				.antMatchers(
-						"/data/add",
-						"/data/getAll"
+						"/device/**",
+						"/data/update/**",
+						"/data/delete/**",
+						"/data/deleteAll/**"
 				)
-				.hasAnyAuthority("DEVICE")
+				.hasAnyAuthority("PLAYER")
 				.antMatchers(
-						"/admins/designate",
-						"/admins/get",
-						"/admins/getAll",
-						"/admins/reset",
-						"/admins/delete"				
+						"/data/add/**",
+						"/data/get/**",
+						"/data/getAll/**"
+				)
+				.hasAnyAuthority("PLAYER","DEVICE")
+				.antMatchers(
+						"/admins/**"			
 				)
 				.hasAnyAuthority("ADMIN")
 				.antMatchers(
-						"/encrypted"
-				)
-				.denyAll()
+						"/**"			
+				).denyAll() // Deny all access if not matching one of the above rules..
 				.and()
 				.formLogin(form -> form.loginPage("/login")
-						.defaultSuccessUrl("/home")
 						.failureUrl("/login?error=true")).logout();
 	}
 

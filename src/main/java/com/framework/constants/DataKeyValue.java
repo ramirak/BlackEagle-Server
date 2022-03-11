@@ -7,5 +7,7 @@ public enum DataKeyValue {
 	REQUEST_PENDING,
 	PATH,
 	IP_ADDR,
-	GEO_LOCATION
+	GEO_LOCATION,
+	ATTACHMENT,
+	DATA
 }

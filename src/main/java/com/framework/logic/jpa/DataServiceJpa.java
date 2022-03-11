@@ -1,6 +1,9 @@
 package com.framework.logic.jpa;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -120,16 +123,19 @@ public class DataServiceJpa implements DataService {
 			}
 
 		}
-		DataEntity dataEntity = this.deConverter.fromBoundary(newData);
-		existingOwner.addDataToUser(dataEntity);
-
-		if (file != null)
+		if (file != null) {
+			newData.getDataAttributes().put(DataKeyValue.ATTACHMENT.name(), Boolean.TRUE);
 			try {
 				userFiles.saveUploadedFile(file,
 						ServerDefaults.SERVER_USER_DATA_PATH + "/" + existingOwner.getUid() + "/", newUID);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		} else
+			newData.getDataAttributes().put(DataKeyValue.ATTACHMENT.name(), Boolean.FALSE);
+		DataEntity dataEntity = this.deConverter.fromBoundary(newData);
+		existingOwner.addDataToUser(dataEntity);
+
 		this.dataDao.save(dataEntity);
 		this.userDao.save(existingOwner);
 		return this.deConverter.toBoundary(dataEntity);
@@ -201,7 +207,7 @@ public class DataServiceJpa implements DataService {
 		validations.assertNull(dataId);
 
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
-
+	
 		if (uid != authenticatedUser) {
 			Optional<UserEntity> existingDevice = userDao.findById(uid);
 			UserEntity deviceEntity;
@@ -212,8 +218,21 @@ public class DataServiceJpa implements DataService {
 
 			validations.assertOwnership(authenticatedUser, deviceEntity.getDeviceOwner().getUid());
 		}
+		DataEntity de = dataDao.findByDataIdAndDataOwnerUid(dataId, uid);
+		DataBoundary db = deConverter.toBoundary(de);
 
-		return deConverter.toBoundary(dataDao.findByDataIdAndDataOwnerUid(dataId, uid));
+		if (db.getDataAttributes().containsKey(DataKeyValue.ATTACHMENT.name())
+				&& db.getDataAttributes().get(DataKeyValue.ATTACHMENT.name()) == Boolean.TRUE) {
+			String path = ServerDefaults.SERVER_USER_DATA_PATH + "/" + de.getDataOwner().getUid() + "/";
+			Path p = FileSystems.getDefault().getPath(path, dataId);
+			try {
+				byte[] fileData = Files.readAllBytes(p);
+				db.getDataAttributes().put(DataKeyValue.DATA.name(), fileData);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return db;
 	}
 
 	@Override

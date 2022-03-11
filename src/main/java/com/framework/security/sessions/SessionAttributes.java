@@ -1,8 +1,16 @@
 package com.framework.security.sessions;
 
+import java.util.Collection;
+import java.util.Optional;
+
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -13,6 +21,23 @@ public class SessionAttributes {
 		return SecurityContextHolder.getContext().getAuthentication().getName();
 	}
 
+	public Collection<? extends GrantedAuthority> retrieveAuthorities() {
+		return SecurityContextHolder.getContext().getAuthentication().getAuthorities();
+	}
+
+	public boolean hasRole(String role, Collection<? extends GrantedAuthority> authorities) {
+		for (GrantedAuthority authority : authorities) {
+			if (authority.getAuthority().contains(role)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public Authentication getAuthenticationDetails(){
+		return SecurityContextHolder.getContext().getAuthentication();
+	}
+	
 	public String retrieveIpAddress() {
 		ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
 		HttpServletRequest request = attr.getRequest();
