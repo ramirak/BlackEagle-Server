@@ -134,12 +134,6 @@ public class UserServiceJpa implements UserService {
 	}
 
 	@Override
-	public UserBoundary login2FA(String oneTimeKey) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public UserBoundary updateUser(UserBoundary update) {
 		// TODO get currently logged-in password details
 		String authenticatedUser = session.retrieveAuthenticatedUsername();

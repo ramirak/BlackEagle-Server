@@ -29,11 +29,6 @@ public class UserController {
 		return userService.updateUser(newDetails);
 	}
 
-	@RequestMapping(path = "/users/login/2FA", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public UserBoundary login2FA(@RequestBody String oneTimeKey) {
-		return userService.login2FA(oneTimeKey);
-	}
-
 	@RequestMapping(path = "/users/reset/{userEmail}/{oneTimeKey}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public UserBoundary resetPassword(@PathVariable("userEmail") String email,
 			@PathVariable("oneTimeKey") String oneTimeKey) {

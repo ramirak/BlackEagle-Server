@@ -7,8 +7,6 @@ import com.framework.boundaries.UserBoundary;
 public interface UserService extends UserDetailsService{
 	public UserBoundary register(UserBoundary user);
 
-	public UserBoundary login2FA(String oneTimeKey);
-
 	public UserBoundary updateUser(UserBoundary update);
 	
 	public UserBoundary resetPassword(String userEmail,String oneTimeKey);
