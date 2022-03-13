@@ -75,7 +75,7 @@ public class DeviceServiceJpa implements DeviceService {
 	public void setUtils(Validations utils) {
 		this.utils = utils;
 	}
-	
+
 	@Autowired
 	public void setSession(SessionAttributes session) {
 		this.session = session;
@@ -169,7 +169,9 @@ public class DeviceServiceJpa implements DeviceService {
 
 		// TODO: delete data
 		// --------------------------------------------------------------------------------
+		deviceOwner.setDeviceCount(deviceOwner.getDeviceCount() - 1);
 		this.userDao.delete(deviceEntity);
+
 		return ueConverter.toBoundary(deviceEntity);
 	}
 
@@ -177,7 +179,6 @@ public class DeviceServiceJpa implements DeviceService {
 	public UserBoundary getSpecificDevice(String deviceId) {
 		utils.assertNull(deviceId);
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
-
 
 		Optional<UserEntity> existingDevice = this.userDao.findById(deviceId);
 		if (!existingDevice.isPresent())

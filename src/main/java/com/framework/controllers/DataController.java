@@ -48,7 +48,7 @@ public class DataController {
 	}
 
 	@RequestMapping(path = "/data/deleteAll/{deviceId}", method = RequestMethod.DELETE)
-	public void deleteAllData(@RequestBody String deviceId) {
+	public void deleteAllData(@PathVariable("deviceId") String deviceId) {
 		dataService.deleteAllData(deviceId);
 	}
 

@@ -23,12 +23,14 @@ import com.framework.data.UserEntity;
 import com.framework.data.dao.PasswordDao;
 import com.framework.data.dao.UserDao;
 import com.framework.exceptions.AlreadyExistingException;
+import com.framework.exceptions.InvalidMailException;
 import com.framework.exceptions.NotFoundException;
 import com.framework.exceptions.UnauthorizedRequest;
 import com.framework.exceptions.WeakPasswordException;
 import com.framework.logic.UserService;
 import com.framework.logic.converters.PasswordEntityConverterImlementation;
 import com.framework.logic.converters.UserEntityConverterImplementation;
+import com.framework.security.services.DictionaryAttackPrevention;
 import com.framework.security.services.OTPService;
 import com.framework.security.services.PasswordValidations;
 import com.framework.security.sessions.SessionAttributes;
@@ -46,7 +48,8 @@ public class UserServiceJpa implements UserService {
 	private OTPService otpService;
 	private Validations utils;
 	private SessionAttributes session;
-
+	private DictionaryAttackPrevention dap;
+	
 	public UserServiceJpa() {
 	}
 
@@ -100,6 +103,11 @@ public class UserServiceJpa implements UserService {
 		this.session = session;
 	}
 	
+	@Autowired
+	public void setDap(DictionaryAttackPrevention dap) {
+		this.dap = dap;
+	}
+	
 	@Override
 	@Transactional
 	public UserBoundary register(UserBoundary user) {
@@ -113,10 +121,13 @@ public class UserServiceJpa implements UserService {
 
 		user.setRole(UserRole.PLAYER);
 		user.setActive(true);
+		if(!passwordRules.checkMail(user.getUserId().getUID()))
+			throw new InvalidMailException("Invalid mail");
+		if(dap.isPassInDictionary(user.getUserId().getPasswordBoundary().getPassword()))
+			throw new WeakPasswordException("Password appeared in a leaked password database, choose another one");
 		// Hash the password before converting to entity
 		if (!passwordRules.checkPassword(user.getUserId().getPasswordBoundary().getPassword())) 
 			throw new WeakPasswordException("Password does not meet the minimum requirenments");
-		
 		String hashedPass = passwordEncoder.encode(user.getUserId().getPasswordBoundary().getPassword());
 		user.getUserId().getPasswordBoundary().setPassword(hashedPass);
 		// Convert and save to database if the user is not already exits
@@ -167,6 +178,8 @@ public class UserServiceJpa implements UserService {
 				throw new UnauthorizedRequest("Failed to verify old password");
 			if (!passwordRules.isPasswordInHistory(newPassword, existingEntity.getPasswords())) {
 				// Check if the new password is a valid password
+				if(dap.isPassInDictionary(newPassword))
+					throw new WeakPasswordException("Password appeared in a leaked password database, choose another one");
 				if (passwordRules.checkPassword(newPassword)) {
 					// If all the checks are passed, proceed to updating the entity with the new password
 					updatedPassBoundary.setPassword(passwordEncoder.encode(newPassword));

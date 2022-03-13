@@ -24,6 +24,6 @@ public interface PasswordsDefaults extends ServerTime {
 	FORCE_SECOND_AUTHENTICATION = true;
 	
 	public final String 
-	DICTIONARY_FILE_PATH = " ",
+	DICTIONARY_FILE_PATH = "rockyou.dict",
 	TEMP_TOKEN = "PRE_AUTH";
 }

@@ -33,7 +33,6 @@ public class CustomBasicAuthenticationProvider implements AuthenticationProvider
 	private SessionAttributes session;
 	private OTPService otp;
 	private final String tempToken = PasswordsDefaults.TEMP_TOKEN;
-	private boolean multipleAuthentication = PasswordsDefaults.FORCE_SECOND_AUTHENTICATION;
 
 	@Autowired
 	public void setUserService(UserDetailsService userService) {
@@ -65,9 +64,13 @@ public class CustomBasicAuthenticationProvider implements AuthenticationProvider
 		String username = authentication.getName();
 		String password = (String) authentication.getCredentials();
 		UserDetails user = userService.loadUserByUsername(username);
+		boolean multipleAuthentication;
+		
 		if (session.hasRole("DEVICE", user.getAuthorities())) // Devices should login without 2fa ..
 			multipleAuthentication = false;
-
+		else 
+			multipleAuthentication = PasswordsDefaults.FORCE_SECOND_AUTHENTICATION;
+		
 		if (multipleAuthentication) {
 			// Already authenticated first stage, now check 2fa..
 			if (session.getAuthenticationDetails() != null

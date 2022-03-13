@@ -13,6 +13,9 @@ target/
 .springBeans
 .sts4-cache
 
+## Our password dictionary
+rockyou.dict
+
 ### IntelliJ IDEA ###
 .idea
 *.iws

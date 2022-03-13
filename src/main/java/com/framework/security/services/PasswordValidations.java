@@ -1,17 +1,11 @@
 package com.framework.security.services;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Scanner;
 import java.util.Set;
-
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
 import com.framework.constants.PasswordsDefaults;
 import com.framework.data.PasswordEntity;
 
@@ -19,7 +13,10 @@ import com.framework.data.PasswordEntity;
 public class PasswordValidations {
 
 	private PasswordEncoder passwordEncoder;
-	
+	public int passMinLength = PasswordsDefaults.PASS_MIN_LENGTH;
+	public int passMaxLength = PasswordsDefaults.PASS_MAX_LENGTH;
+	public int maxTries = PasswordsDefaults.MAX_TRIES;
+
 	@Autowired
 	public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
 		this.passwordEncoder = passwordEncoder;
@@ -32,32 +29,6 @@ public class PasswordValidations {
 		}
 		return false;
 	}
-
-	
-	public Boolean isPassInDictionary(String p) {
-		if (!PasswordsDefaults.PREVENT_DICTIONARY)
-			return false;
-		try {
-			File f = new File(PasswordsDefaults.DICTIONARY_FILE_PATH);
-			Scanner reader = new Scanner(f);
-			while (reader.hasNextLine()) {
-				String data = reader.nextLine();
-				if (p.toLowerCase().contentEquals(data.toLowerCase())) {
-					reader.close();
-					return true;
-				}
-			}
-			reader.close();
-		} catch (FileNotFoundException e) {
-			System.out.println("An error occurred.");
-			e.printStackTrace();
-		}
-		return false;
-	}
-
-	public int passMinLength = PasswordsDefaults.PASS_MIN_LENGTH;
-	public int passMaxLength = PasswordsDefaults.PASS_MAX_LENGTH;
-	public int maxTries = PasswordsDefaults.MAX_TRIES;
 
 	public boolean checkMail(String email) {
 		boolean isValid = false;
