@@ -12,9 +12,9 @@ import com.framework.data.UserEntity;
 
 public interface UserDao extends PagingAndSortingRepository<UserEntity, String> {
 
-	public List<UserEntity> findAllByActiveAndRoleAndDeviceOwnerUid(@Param("active") boolean active, UserRole role,
+	public List<UserEntity> findAllByActiveAndRoleAndDeviceOwnerUid(@Param("active") boolean active, String role,
 			String ownerUid, Pageable pageable);
 
 	public Optional<UserEntity> findByActiveAndUidAndRoleAndDeviceOwnerUid(@Param("active") boolean active, String uid,
-			UserRole role, String ownerUid);
+			String role, String ownerUid);
 }

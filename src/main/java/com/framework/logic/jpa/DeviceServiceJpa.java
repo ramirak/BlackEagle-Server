@@ -189,7 +189,7 @@ public class DeviceServiceJpa implements DeviceService {
 		utils.assertOwnership(deviceOwner.getUid(), authenticatedUser);
 
 		return this.ueConverter.toBoundary(userDao
-				.findByActiveAndUidAndRoleAndDeviceOwnerUid(true, deviceId, UserRole.DEVICE, authenticatedUser).get());
+				.findByActiveAndUidAndRoleAndDeviceOwnerUid(true, deviceId, UserRole.DEVICE.name(), authenticatedUser).get());
 	}
 
 	@Override
@@ -199,9 +199,9 @@ public class DeviceServiceJpa implements DeviceService {
 
 		UserEntity existingUser = userDao.findById(authenticatedUser).get();
 
-		if (existingUser.getRole() == UserRole.PLAYER.name()) {
+		if (existingUser.getRole().equals(UserRole.PLAYER.name())) {
 			return this.userDao
-					.findAllByActiveAndRoleAndDeviceOwnerUid(true, UserRole.DEVICE, authenticatedUser,
+					.findAllByActiveAndRoleAndDeviceOwnerUid(true, UserRole.DEVICE.name(), authenticatedUser,
 							PageRequest.of(page, size, Direction.DESC, "name"))
 					.stream().map(this.ueConverter::toBoundary).collect(Collectors.toList());
 		} else
