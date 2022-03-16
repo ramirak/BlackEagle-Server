@@ -1,6 +1,5 @@
 package com.framework.logic.jpa;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +28,7 @@ import com.framework.exceptions.NotFoundException;
 import com.framework.logic.DeviceService;
 import com.framework.logic.converters.PasswordEntityConverterImlementation;
 import com.framework.logic.converters.UserEntityConverterImplementation;
-import com.framework.security.services.EncryptionUtils;
+import com.framework.security.services.PasswordUtils;
 import com.framework.security.sessions.SessionAttributes;
 import com.framework.utilities.Validations;
 
@@ -42,7 +41,8 @@ public class DeviceServiceJpa implements DeviceService {
 	private PasswordEncoder passwordEncoder;
 	private Validations utils;
 	private SessionAttributes session;
-
+	private PasswordUtils passUtils;
+	
 	public DeviceServiceJpa() {
 	}
 
@@ -81,6 +81,11 @@ public class DeviceServiceJpa implements DeviceService {
 		this.session = session;
 	}
 
+	@Autowired
+	public void setPassUtils(PasswordUtils passUtils) {
+		this.passUtils = passUtils;
+	}
+	
 	@Override
 	public UserBoundary addDevice(UserBoundary device) {
 		utils.assertNull(device);
@@ -106,14 +111,7 @@ public class DeviceServiceJpa implements DeviceService {
 		passBoundary.setActive(true);
 		passBoundary.setCreationTime(new Date());
 
-		String newKey;
-		// TODO: check this function
-		try {
-			newKey = EncryptionUtils.convertSecretKeyToString(EncryptionUtils.generateKey(256));
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-			throw new RuntimeException();
-		}
+		String newKey = passUtils.generatePassword();
 		passBoundary.setPassword(passwordEncoder.encode(newKey));
 		device.setUserId(new UserIdBoundary(newUID, passBoundary));
 		UserEntity deviceEntity = this.ueConverter.fromBoundary(device);
@@ -189,7 +187,8 @@ public class DeviceServiceJpa implements DeviceService {
 		utils.assertOwnership(deviceOwner.getUid(), authenticatedUser);
 
 		return this.ueConverter.toBoundary(userDao
-				.findByActiveAndUidAndRoleAndDeviceOwnerUid(true, deviceId, UserRole.DEVICE.name(), authenticatedUser).get());
+				.findByActiveAndUidAndRoleAndDeviceOwnerUid(true, deviceId, UserRole.DEVICE.name(), authenticatedUser)
+				.get());
 	}
 
 	@Override

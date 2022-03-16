@@ -1,17 +1,6 @@
 package com.framework.constants;
 
-public interface ServerDefaults extends ServerTime{
-	public final String ENC_METHODS[] = { 
-			"AES/CBC/NoPadding", 
-			"AES/CBC/PKCS5Padding", 
-			"AES/ECB/NoPadding",
-			"AES/ECB/PKCS5Padding", 
-			"AES/GCM/NoPadding", 
-			"RSA/ECB/PKCS1Padding",
-			"RSA/ECB/OAEPWithSHA-1AndMGF1Padding", 
-			"RSA/ECB/OAEPWithSHA-256AndMGF1Padding" 
-			};
-	
+public interface ServerDefaults extends ServerTime{	
 	public final int 
 	DELETE_IF_INACTIVE_FOR = 1 * year,
 	LOGOUT_IF_INACTIVE_FOR = 5 * minute,
@@ -27,8 +16,7 @@ public interface ServerDefaults extends ServerTime{
 	FORCE_EMAIL_VERIFICATION = true;
 	
 	public final String 
-	DEFAULT_ENCRYPTION_METHOD = ENC_METHODS[1],
+	DEFAULT_ENCRYPTION_METHOD = "AES/CBC/PKCS5Padding",
 	SERVER_EMAIL = "******@gmail.com",
-	SERVER_EMAIL_PASSWORD = "123",
 	SERVER_USER_DATA_PATH = "data/users";
 }

@@ -32,7 +32,7 @@ import com.framework.logic.converters.PasswordEntityConverterImlementation;
 import com.framework.logic.converters.UserEntityConverterImplementation;
 import com.framework.security.services.DictionaryAttackPrevention;
 import com.framework.security.services.OTPService;
-import com.framework.security.services.PasswordValidations;
+import com.framework.security.services.PasswordUtils;
 import com.framework.security.sessions.SessionAttributes;
 import com.framework.utilities.Validations;
 
@@ -44,12 +44,12 @@ public class UserServiceJpa implements UserService {
 	private UserEntityConverterImplementation ueConverter;
 	private PasswordEntityConverterImlementation peConverter;
 	private PasswordEncoder passwordEncoder;
-	private PasswordValidations passwordRules;
+	private PasswordUtils passwordRules;
 	private OTPService otpService;
 	private Validations utils;
 	private SessionAttributes session;
 	private DictionaryAttackPrevention dap;
-	
+
 	public UserServiceJpa() {
 	}
 
@@ -69,7 +69,7 @@ public class UserServiceJpa implements UserService {
 	}
 
 	@Autowired
-	public void setPasswordUtils(PasswordValidations passwordUtils) {
+	public void setPasswordUtils(PasswordUtils passwordUtils) {
 		this.passwordRules = passwordUtils;
 	}
 
@@ -97,17 +97,17 @@ public class UserServiceJpa implements UserService {
 	public void setUtils(Validations utils) {
 		this.utils = utils;
 	}
-	
+
 	@Autowired
 	public void setSession(SessionAttributes session) {
 		this.session = session;
 	}
-	
+
 	@Autowired
 	public void setDap(DictionaryAttackPrevention dap) {
 		this.dap = dap;
 	}
-	
+
 	@Override
 	@Transactional
 	public UserBoundary register(UserBoundary user) {
@@ -121,12 +121,12 @@ public class UserServiceJpa implements UserService {
 
 		user.setRole(UserRole.PLAYER);
 		user.setActive(true);
-		if(!passwordRules.checkMail(user.getUserId().getUID()))
+		if (!passwordRules.checkMail(user.getUserId().getUID()))
 			throw new InvalidMailException("Invalid mail");
-		if(dap.isPassInDictionary(user.getUserId().getPasswordBoundary().getPassword()))
+		if (dap.isPassInDictionary(user.getUserId().getPasswordBoundary().getPassword()))
 			throw new WeakPasswordException("Password appeared in a leaked password database, choose another one");
 		// Hash the password before converting to entity
-		if (!passwordRules.checkPassword(user.getUserId().getPasswordBoundary().getPassword())) 
+		if (!passwordRules.checkPassword(user.getUserId().getPasswordBoundary().getPassword()))
 			throw new WeakPasswordException("Password does not meet the minimum requirenments");
 		String hashedPass = passwordEncoder.encode(user.getUserId().getPasswordBoundary().getPassword());
 		user.getUserId().getPasswordBoundary().setPassword(hashedPass);
@@ -164,7 +164,7 @@ public class UserServiceJpa implements UserService {
 			existingEntity.setActive(update.getActive());
 			dirty = true;
 		}
-		if(update.getName() != null) {
+		if (update.getName() != null) {
 			existingEntity.setName(update.getName());
 			dirty = true;
 		}
@@ -178,10 +178,12 @@ public class UserServiceJpa implements UserService {
 				throw new UnauthorizedRequest("Failed to verify old password");
 			if (!passwordRules.isPasswordInHistory(newPassword, existingEntity.getPasswords())) {
 				// Check if the new password is a valid password
-				if(dap.isPassInDictionary(newPassword))
-					throw new WeakPasswordException("Password appeared in a leaked password database, choose another one");
+				if (dap.isPassInDictionary(newPassword))
+					throw new WeakPasswordException(
+							"Password appeared in a leaked password database, choose another one");
 				if (passwordRules.checkPassword(newPassword)) {
-					// If all the checks are passed, proceed to updating the entity with the new password
+					// If all the checks are passed, proceed to updating the entity with the new
+					// password
 					updatedPassBoundary.setPassword(passwordEncoder.encode(newPassword));
 					updatedPassBoundary.setCreationTime(new Date());
 					PasswordEntity newPassEntity = peConverter.fromBoundary(updatedPassBoundary);
@@ -190,10 +192,10 @@ public class UserServiceJpa implements UserService {
 						passwordDao.delete(oldPasswordEntity.get());
 					eventServiceJpa.createEvent(authenticatedUser, EventType.PASSWORD_UPDATE);
 					dirty = true;
-				}else{
+				} else {
 					throw new WeakPasswordException("Password does not meet the minimum requirenments");
 				}
-			}else
+			} else
 				throw new AlreadyExistingException("Password was already used in the past");
 		}
 		if (dirty)
@@ -203,21 +205,20 @@ public class UserServiceJpa implements UserService {
 
 	@Override
 	public UserBoundary resetPassword(String userEmail, String oneTimeKey) {
-
 		return null;
 	}
 
 	@Override
 	public UserBoundary deleteAccount(String oneTimeKey) {
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
-		
+
 		Optional<UserEntity> existingUser = userDao.findById(authenticatedUser);
 		if (!existingUser.isPresent())
 			throw new NotFoundException("User does not exists in the database");
 
 		try {
 			// Compare user input to the generated OTP value and delete if equals.
-			if (otpService.getOTP(authenticatedUser) == Integer.parseInt(oneTimeKey)) {
+			if (otpService.getOTP(authenticatedUser).equals(oneTimeKey)) {
 				// TODO delete from dataDao
 				// TODO delete owned devices
 				passwordDao.deleteById(authenticatedUser);

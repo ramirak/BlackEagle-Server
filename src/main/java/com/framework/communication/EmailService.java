@@ -1,6 +1,11 @@
 package com.framework.communication;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -15,11 +20,19 @@ import org.springframework.stereotype.Service;
 import com.framework.constants.ServerDefaults;
 
 @Service
-public class CommUtils implements CommInterface{
-	@Override
+public class EmailService {
+	private String emailPass;
+	public EmailService() {
+		try {
+			this.emailPass = Files.readString(Paths.get("sec/blackeagle-mail.cred"), StandardCharsets.US_ASCII);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public void sendEmail(String sendTo, String text, String subject) {
 		final String emailSender = ServerDefaults.SERVER_EMAIL;
-		final String passwordSender = ServerDefaults.SERVER_EMAIL_PASSWORD;
+		final String passwordSender = emailPass;
 		Properties prop = new Properties();
 		prop.put("mail.smtp.host", "smtp.gmail.com");
 		prop.put("mail.smtp.port", "587");
@@ -40,12 +53,5 @@ public class CommUtils implements CommInterface{
 		} catch (MessagingException e) {
 			e.printStackTrace();
 		}
-
 	}
-	@Override
-	public void sendSMS(String sendTo, String text, String subject) {
-
-		
-	}
-
 }

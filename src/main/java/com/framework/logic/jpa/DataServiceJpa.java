@@ -1,9 +1,6 @@
 package com.framework.logic.jpa;
 
 import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -127,7 +124,7 @@ public class DataServiceJpa implements DataService {
 			newData.getDataAttributes().put(DataKeyValue.ATTACHMENT.name(), Boolean.TRUE);
 			try {
 				userFiles.saveUploadedFile(file,
-						ServerDefaults.SERVER_USER_DATA_PATH + "/" + existingOwner.getUid() + "/", newUID);
+						ServerDefaults.SERVER_USER_DATA_PATH + "/" + existingOwner.getUid() + "/", newUID, true); // True for encrypted
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -207,7 +204,7 @@ public class DataServiceJpa implements DataService {
 		validations.assertNull(dataId);
 
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
-	
+
 		if (uid != authenticatedUser) {
 			Optional<UserEntity> existingDevice = userDao.findById(uid);
 			UserEntity deviceEntity;
@@ -224,13 +221,8 @@ public class DataServiceJpa implements DataService {
 		if (db.getDataAttributes().containsKey(DataKeyValue.ATTACHMENT.name())
 				&& db.getDataAttributes().get(DataKeyValue.ATTACHMENT.name()) == Boolean.TRUE) {
 			String path = ServerDefaults.SERVER_USER_DATA_PATH + "/" + de.getDataOwner().getUid() + "/";
-			Path p = FileSystems.getDefault().getPath(path, dataId);
-			try {
-				byte[] fileData = Files.readAllBytes(p);
-				db.getDataAttributes().put(DataKeyValue.DATA.name(), fileData);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			byte[] fileData = this.userFiles.getUploadedFile(path, dataId, true); // True for decrypted
+			db.getDataAttributes().put(DataKeyValue.DATA.name(), fileData);
 		}
 		return db;
 	}
@@ -239,7 +231,6 @@ public class DataServiceJpa implements DataService {
 	@Transactional(readOnly = true)
 	public List<DataBoundary> getAllData(String uid, UserData type, int page, int size) {
 		validations.assertNull(uid);
-
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
 
 		if (!uid.equals(authenticatedUser)) {

@@ -13,31 +13,37 @@ import com.google.common.cache.CacheLoader;
 
 @Service
 public class OTPService {
-	private Cache<String, Integer> otpCache;
+	private Cache<String, String> otpCache;
 
 	public OTPService() {
 		this.otpCache = CacheBuilder.newBuilder()
-				.expireAfterWrite(30, TimeUnit.SECONDS).maximumSize(ServerDefaults.MAX_CACHE_SIZE)
-				.build(new CacheLoader<String, Integer>() {
+				.expireAfterWrite(60, TimeUnit.SECONDS).maximumSize(ServerDefaults.MAX_CACHE_SIZE)
+				.build(new CacheLoader<String, String>() {
 					@Override
-					public Integer load(String key) throws Exception {
+					public String load(String key) throws Exception {
 						return generateOTP(key);
 					}
 				});
 	}
 
-	public int generateOTP(String uid) {
+	public String generateOTP(String uid) {
 		SecureRandom rand = new SecureRandom();
 		int otp = 1000000 + rand.nextInt(8999999);
-		return otp;
+		return String.valueOf(otp);
 	}
 
-	public int getOTP(String uid) throws ExecutionException {
+	public String getOTP(String uid) throws ExecutionException {
 		return this.otpCache.get(uid);
 	}
 
 	public void removeOTP(String uid) {
 		this.otpCache.invalidate(uid);
+	}
+	
+	public boolean hasKey(String key) {
+		if(this.otpCache.asMap().containsKey(key))
+			return true;
+		return false;
 	}
 
 	public void clearCache() {

@@ -19,7 +19,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.framework.logic.jpa.EventServiceJpa;
 
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
@@ -96,12 +95,18 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	}
 
 	@Bean
-	public CustomBasicAuthenticationProvider authProvider() {
-		CustomBasicAuthenticationProvider authProvider = new CustomBasicAuthenticationProvider();
+	public FirstAuthenticationProvider fAuthProvider() {
+		FirstAuthenticationProvider authProvider = new FirstAuthenticationProvider();
 		authProvider.setPasswordEncoder(passwordEncoder());
 		return authProvider;
 	}
-
+	
+	@Bean
+	public SecondAuthenticationProvider sAuthProvider() {
+		SecondAuthenticationProvider authProvider = new SecondAuthenticationProvider();
+		return authProvider;
+	}
+	
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new Pbkdf2PasswordEncoder();
@@ -109,6 +114,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-		auth.authenticationProvider(authProvider());
+		auth.authenticationProvider(fAuthProvider());
+		auth.authenticationProvider(sAuthProvider());
 	}
 }

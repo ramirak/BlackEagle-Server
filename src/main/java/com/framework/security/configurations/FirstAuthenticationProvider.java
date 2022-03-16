@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -16,7 +15,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
 import com.framework.constants.PasswordsDefaults;
 import com.framework.data.PasswordEntity;
 import com.framework.data.dao.PasswordDao;
@@ -25,14 +23,14 @@ import com.framework.security.services.OTPService;
 import com.framework.security.sessions.SessionAttributes;
 
 @Component
-public class CustomBasicAuthenticationProvider implements AuthenticationProvider {
+public class FirstAuthenticationProvider implements AuthenticationProvider {
 
 	private UserDetailsService userService;
 	private PasswordDao passwordDao;
 	private PasswordEncoder passwordEncoder;
 	private SessionAttributes session;
 	private OTPService otp;
-	private final String tempToken = PasswordsDefaults.TEMP_TOKEN;
+	private boolean twoAuth;
 
 	@Autowired
 	public void setUserService(UserDetailsService userService) {
@@ -64,51 +62,33 @@ public class CustomBasicAuthenticationProvider implements AuthenticationProvider
 		String username = authentication.getName();
 		String password = (String) authentication.getCredentials();
 		UserDetails user = userService.loadUserByUsername(username);
-		boolean multipleAuthentication;
 		
-		if (session.hasRole("DEVICE", user.getAuthorities())) // Devices should login without 2fa ..
-			multipleAuthentication = false;
-		else 
-			multipleAuthentication = PasswordsDefaults.FORCE_SECOND_AUTHENTICATION;
-		
-		if (multipleAuthentication) {
-			// Already authenticated first stage, now check 2fa..
-			if (session.getAuthenticationDetails() != null
-					&& session.hasRole(tempToken, session.retrieveAuthorities())) {
-				try {
-					if (Integer.parseInt(password) == otp.getOTP(username)) {
-						// Fully authenticated, set User roles accordingly..
-						return new UsernamePasswordAuthenticationToken(username, password, user.getAuthorities());
-					} else {
-						throw new BadCredentialsException("Incorrect one time key");
-					}
-				} catch (ExecutionException e) {
-					e.printStackTrace();
-				}
-			}
-		}
+		if (session.getAuthenticationDetails() != null && session.hasRole(PasswordsDefaults.TEMP_TOKEN, session.retrieveAuthorities()))
+			return null; // No need to check here, skip to 2fa provider
+		else if (session.hasRole("DEVICE", user.getAuthorities())) // Devices should login without 2fa ..
+			twoAuth = false;
+		else
+			twoAuth = PasswordsDefaults.FORCE_SECOND_AUTHENTICATION;
 
-		// First stage of the authentication
 		Optional<PasswordEntity> existingPass = passwordDao.findByActiveAndPassOwnerUid(true, authentication.getName());
 		if (!existingPass.isPresent())
 			throw new NotFoundException("Unable to find current active password");
 		PasswordEntity pe = existingPass.get();
 		if (passwordEncoder.matches(password, pe.getPassword())) {
-			if (multipleAuthentication) {
+			if (twoAuth) {
 				try {
 					System.out.println("---------------- Current Key : " + otp.getOTP(username) + " ----------------");
 				} catch (ExecutionException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				ArrayList<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 				// Grant current user access to second factor authentication only..
-				grantedAuthorities.add(new SimpleGrantedAuthority(tempToken));
+				grantedAuthorities.add(new SimpleGrantedAuthority(PasswordsDefaults.TEMP_TOKEN));
 				return new UsernamePasswordAuthenticationToken(username, password, grantedAuthorities);
 			} else
 				return new UsernamePasswordAuthenticationToken(username, password, user.getAuthorities());
 		}
-		throw new BadCredentialsException("Incorrect username or password");
+		return null; // will throw Bad Credential at the next step
 	}
 
 	@Override
