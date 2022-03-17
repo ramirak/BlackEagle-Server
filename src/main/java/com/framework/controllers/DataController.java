@@ -18,26 +18,21 @@ import com.framework.logic.DataService;
 @RestController
 public class DataController {
 	private DataService dataService;
-
+	
 	@Autowired
 	public void setDataService(DataService dataService) {
 		this.dataService = dataService;
 	}
 
-	@RequestMapping(path = "/data/add/{deviceId}", 
-			method = RequestMethod.POST, 
-			produces = MediaType.APPLICATION_JSON_VALUE, 
-			consumes = {MediaType.MULTIPART_FORM_DATA_VALUE , MediaType.APPLICATION_JSON_VALUE})
-	public DataBoundary addData(
-			@RequestParam(value = "file", required = false) MultipartFile file,
-			@RequestPart DataBoundary newData, @PathVariable("deviceId") String deviceId){
+	@RequestMapping(path = "/data/add/{deviceId}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = {
+			MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE })
+	public DataBoundary addData(@RequestParam(value = "file", required = false) MultipartFile file,
+			@RequestPart DataBoundary newData, @PathVariable("deviceId") String deviceId) {
 		return dataService.addData(deviceId, newData, file);
 	}
 
-	@RequestMapping(path = "/data/update", 
-			method = RequestMethod.PUT, 
-			produces = MediaType.APPLICATION_JSON_VALUE, 
-			consumes = {"multipart/form-data" })
+	@RequestMapping(path = "/data/update", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE, consumes = {
+			"multipart/form-data" })
 	public DataBoundary updateData(@RequestBody DataBoundary newDetails) {
 		return dataService.updateData(newDetails);
 	}
@@ -62,7 +57,7 @@ public class DataController {
 	public DataBoundary[] getAllData(@PathVariable("deviceId") String deviceId, @PathVariable("dataType") UserData type,
 			@RequestParam(name = "page", required = false, defaultValue = "0") int page,
 			@RequestParam(name = "size", required = false, defaultValue = "5") int size) {
-		return dataService.getAllData(deviceId,type, page, size).toArray(new DataBoundary[0]);
+		return dataService.getAllData(deviceId, type, page, size).toArray(new DataBoundary[0]);
 	}
 
 }

@@ -10,9 +10,9 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.finalproject</groupId>
-	<artifactId>CyberDome</artifactId>
+	<artifactId>Blackeagle-Server</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>CyberDome</name>
+	<name>Blackeagle</name>
 	<description>finalProject</description>
 	<properties>
 		<java.version>16</java.version>
@@ -22,6 +22,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>jakarta.validation</groupId>
 			<artifactId>jakarta.validation-api</artifactId>
@@ -35,10 +36,11 @@
 			<artifactId>guava</artifactId>
 			<version>10.0.1</version>
 		</dependency>
-		<dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>javax.mail-api</artifactId>
-		</dependency>
+<dependency>
+    <groupId>javax.mail</groupId>
+    <artifactId>mail</artifactId>
+    <version>1.4</version>
+</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-autoconfigure</artifactId>
@@ -47,26 +49,43 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-jpa</artifactId>
 		</dependency>
-		
-<dependency>
-    <groupId>org.springframework.security</groupId>
-    <artifactId>spring-security-core</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.security</groupId>
-    <artifactId>spring-security-web</artifactId>
 
-</dependency>
-<dependency>
-    <groupId>org.springframework.security</groupId>
-    <artifactId>spring-security-config</artifactId>
-</dependency>
-		
-		
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-web</artifactId>
+
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-config</artifactId>
+		</dependency>
+
+
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-entitymanager</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+		</dependency>
+
+
+
 	</dependencies>
 	<build>
 		<plugins>

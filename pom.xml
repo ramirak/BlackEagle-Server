@@ -84,6 +84,11 @@
 			<artifactId>postgresql</artifactId>
 		</dependency>
 
+<dependency>
+    <groupId>com.github.vladimir-bukhtoyarov</groupId>
+    <artifactId>bucket4j-core</artifactId>
+    <version>7.2.0</version>
+</dependency>
 
 
 	</dependencies>

@@ -13,6 +13,9 @@ target/
 .springBeans
 .sts4-cache
 
+## Our password dictionary
+rockyou.dict
+
 ### IntelliJ IDEA ###
 .idea
 *.iws
@@ -28,6 +31,8 @@ target/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
-
 ### VS Code ###
 .vscode/
+
+/data/
+/sec/

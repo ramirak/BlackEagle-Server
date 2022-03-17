@@ -18,21 +18,29 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.framework.logic.jpa.EventServiceJpa;
+import com.framework.security.services.DenialOfServiceProtection;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	private EventServiceJpa eventJpa;
-	
+	private DenialOfServiceProtection ddosProtectionService;
+
 	@Autowired
 	public void setEventJpa(EventServiceJpa eventJpa) {
 		this.eventJpa = eventJpa;
+	}
+
+	@Autowired
+	public void setDdosProtectionService(DenialOfServiceProtection ddosProtectionService) {
+		this.ddosProtectionService = ddosProtectionService;
 	}
 	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http.cors().and().csrf().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS).and()
 				.addFilter(new CustomUsernamePasswordAuthFilter(authenticationManager(),eventJpa))
+				.addFilterAfter(new DenialOfServiceFilter(ddosProtectionService),CustomUsernamePasswordAuthFilter.class)
 				.authorizeRequests()
 				/**
 				 * ------------------------ RULES SUMMARY ------------------------
