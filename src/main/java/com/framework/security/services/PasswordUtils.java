@@ -16,7 +16,6 @@ public class PasswordUtils {
 	private PasswordEncoder passwordEncoder;
 	public int passMinLength = PasswordsDefaults.PASS_MIN_LENGTH;
 	public int passMaxLength = PasswordsDefaults.PASS_MAX_LENGTH;
-	public int maxTries = PasswordsDefaults.MAX_TRIES;
 
 	@Autowired
 	public void setPasswordEncoder(PasswordEncoder passwordEncoder) {

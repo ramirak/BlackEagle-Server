@@ -5,7 +5,6 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,7 +18,7 @@ import com.framework.boundaries.UserLoginDetails;
 import com.framework.constants.EventType;
 import com.framework.logic.jpa.EventServiceJpa;
 
-public class CustomUsernamePasswordAuthFilter extends UsernamePasswordAuthenticationFilter {
+public class CustomUsernamePasswordAuthFilter extends UsernamePasswordAuthenticationFilter  {
 	private AuthenticationManager authManager;
 	private EventServiceJpa eventJpa;
 
@@ -52,8 +51,11 @@ public class CustomUsernamePasswordAuthFilter extends UsernamePasswordAuthentica
 		securityContext.setAuthentication(authResult);
 		if (authResult.getAuthorities().contains(new SimpleGrantedAuthority("PLAYER"))) // Log only events for basic users
 			eventJpa.createEvent(authResult.getName(), EventType.NEW_LOGIN);
-		// Create a new session and add the security context.
-		HttpSession session = request.getSession(true);
-		session.setAttribute("SPRING_SECURITY_CONTEXT", securityContext);
+		/*
+		 * // Create a new session and add the security context. HttpSession session =
+		 * request.getSession(true); session.setAttribute("SPRING_SECURITY_CONTEXT",
+		 * securityContext);
+		 */
 	}
+	
 }

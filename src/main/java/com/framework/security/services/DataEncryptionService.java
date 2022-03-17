@@ -26,7 +26,7 @@ public class DataEncryptionService {
 	private final int ivLen = 16;
 	private final String algorithm;
 	private SecretKey key;
-	
+
 	public DataEncryptionService() {
 		this.algorithm = ServerDefaults.DEFAULT_ENCRYPTION_METHOD;
 		try {
@@ -34,21 +34,7 @@ public class DataEncryptionService {
 			this.key = new SecretKeySpec(keyBytes, 0, keyBytes.length, "AES");
 		} catch (IOException e) {
 			e.printStackTrace();
-		}	
-		
-		//test
-		
-		try {
-			String cyphertext = encrypt("hey dude how are u?\n blablabla");
-			System.out.println("Encrypted : " +  cyphertext);
-			System.out.println("Decrypted : " + decrypt(cyphertext));
-			
-		} catch (InvalidKeyException | NoSuchPaddingException | NoSuchAlgorithmException
-				| InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException e) {
-			e.printStackTrace();
 		}
-		
-		
 	}
 
 	public String encrypt(String input) throws NoSuchPaddingException, NoSuchAlgorithmException,
@@ -78,7 +64,7 @@ public class DataEncryptionService {
 
 		// Base64 decode to get the CipherText with its IV
 		byte[] decodedCipher = Base64.getDecoder().decode(cipherText);
-		
+
 		// Byte arrays for splitting the CipherText
 		byte[] iv = new byte[ivLen];
 		byte[] originalCipherText = new byte[decodedCipher.length - ivLen];
@@ -92,7 +78,7 @@ public class DataEncryptionService {
 		Cipher cipher = Cipher.getInstance(algorithm);
 		cipher.init(Cipher.DECRYPT_MODE, key, ivSpec);
 		byte[] plainText = cipher.doFinal(originalCipherText);
-		
+
 		return new String(plainText);
 	}
 

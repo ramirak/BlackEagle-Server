@@ -6,8 +6,9 @@ public interface PasswordsDefaults extends ServerTime {
 	public final int 
 	PASS_MIN_LENGTH = 10,
 	PASS_MAX_LENGTH = 16,
-	MAX_TRIES = 3,
-	HISTORY = 4,
+	MAX_TRIES_IP = 3,
+	MAX_TRIES_UID = 10,
+ 	HISTORY = 4,
 	PASS_MAX_VALIDITY = 6 * month;
 	/**
 	Force password rules for characters - 
