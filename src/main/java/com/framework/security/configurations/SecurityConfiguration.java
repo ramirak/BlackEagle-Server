@@ -38,9 +38,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		http.cors().and().csrf().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS).and()
-				.addFilter(new CustomUsernamePasswordAuthFilter(authenticationManager(),eventJpa))
-				.addFilterAfter(new DenialOfServiceFilter(ddosProtectionService),CustomUsernamePasswordAuthFilter.class)
+		http.cors().and().csrf().disable()
+				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS).and()
+				.addFilter(new CustomUsernamePasswordAuthFilter(authenticationManager(), eventJpa))
+				.addFilterAfter(new DenialOfServiceFilter(ddosProtectionService), CustomUsernamePasswordAuthFilter.class)
 				.authorizeRequests()
 				/**
 				 * ------------------------ RULES SUMMARY ------------------------

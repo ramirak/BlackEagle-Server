@@ -2,6 +2,7 @@ package com.framework.security.services;
 
 import org.springframework.stereotype.Service;
 
+import com.framework.constants.ServerDefaults;
 import com.framework.exceptions.TooManyRequestsException;
 
 import io.github.bucket4j.Bandwidth;
@@ -18,7 +19,7 @@ public class DenialOfServiceProtection {
 	}
 
 	public Bucket createNewBucket() {
-	    long capacity = 10;
+	    long capacity = ServerDefaults.MAX_REQUEST_PER_MINUTE;
 	    Refill refill = Refill.greedy(capacity, Duration.ofMinutes(1));
 	    Bandwidth limit = Bandwidth.classic(capacity, refill);
 	    return Bucket.builder().addLimit(limit).build();

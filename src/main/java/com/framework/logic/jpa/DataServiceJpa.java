@@ -2,6 +2,7 @@ package com.framework.logic.jpa;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -118,11 +119,13 @@ public class DataServiceJpa implements DataService {
 						.equals(newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name()).toString()))
 					throw new AlreadyExistingException("There is an already pending operation of the same type");
 			}
-
 		}
+		if(newData.getDataAttributes() == null)
+			newData.setDataAttributes(new HashMap<>());
 		if (file != null) {
 			newData.getDataAttributes().put(DataKeyValue.ATTACHMENT.name(), Boolean.TRUE);
 			try {
+				long size = file.getSize();
 				userFiles.saveUploadedFile(file,
 						ServerDefaults.SERVER_USER_DATA_PATH + "/" + existingOwner.getUid() + "/", newUID, true); // True for encrypted
 			} catch (IOException e) {
