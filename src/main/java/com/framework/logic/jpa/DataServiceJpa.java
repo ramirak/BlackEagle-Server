@@ -1,6 +1,7 @@
 package com.framework.logic.jpa;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -17,12 +18,15 @@ import com.framework.boundaries.DataBoundary;
 import com.framework.constants.DataKeyValue;
 import com.framework.constants.ServerDefaults;
 import com.framework.constants.UserData;
+import com.framework.constants.UserRole;
 import com.framework.data.DataEntity;
 import com.framework.data.UserEntity;
 import com.framework.data.dao.DataDao;
 import com.framework.data.dao.UserDao;
 import com.framework.exceptions.AlreadyExistingException;
+import com.framework.exceptions.BadRequestException;
 import com.framework.exceptions.NotFoundException;
+import com.framework.exceptions.UnauthorizedRequest;
 import com.framework.logic.DataService;
 import com.framework.logic.converters.DataEntityConverterImplementation;
 import com.framework.logic.converters.JsonConverter;
@@ -79,11 +83,17 @@ public class DataServiceJpa implements DataService {
 	}
 
 	@Override
-	public DataBoundary addData(String ownerId, DataBoundary newData, MultipartFile file) {
+	@Transactional
+	public DataBoundary addData(String ownerId, DataBoundary newData) { // Each user can upload boundaries to himself or
+																		// his devices
 		validations.assertNull(ownerId);
 		validations.assertNull(newData);
 		validations.assertNull(newData.getDataType());
 		validations.assertValidDataType(newData.getDataType().name());
+
+		if (newData.getDataType() != UserData.REQUEST && newData.getDataType() != UserData.CONFIGURATION
+				&& newData.getDataType() != UserData.NOTIFCATION)
+			throw new BadRequestException("Call to wrong method");
 
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
 		UserEntity existingOwner = userDao.findById(ownerId)
@@ -94,55 +104,90 @@ public class DataServiceJpa implements DataService {
 
 		String newUID = UUID.randomUUID().toString();
 
-		Optional<DataEntity> existingDataOptional = dataDao.findById(newUID);
-		// We would like to prevent the small chance of two equal UUID
-		while (existingDataOptional.isPresent())
-			newUID = UUID.randomUUID().toString();
-
-		newData.setDataId(newUID);
-		newData.setCreatedTimestamp(new Date());
 		if (newData.getDataType() == UserData.REQUEST) {
-			newData.getDataAttributes().put(DataKeyValue.REQUEST_STATE.name(), DataKeyValue.REQUEST_READY.name());
+			// Check if the owner is a device
+			if (!existingOwner.getRole().equals(UserRole.DEVICE.name()))
+				throw new UnauthorizedRequest("Only devices can have Data of type Request");
 			// Check if the request type is valid
 			if (newData.getDataAttributes().containsKey(DataKeyValue.REQUEST_TYPE.name())) {
 				validations.assertValidDataType(
 						newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name()).toString());
 			}
-
-			// Get all requests for current user
-			List<DataEntity> allRequests = this.dataDao.findAllByDataTypeAndDataOwnerUid(UserData.REQUEST.name(),
-					ownerId);
-
-			// If the request already exists, do not add it..
-			for (DataEntity dataEntity : allRequests) {
-				if (jsConverter.JSONToMap(dataEntity.getDataAttributes()).get(DataKeyValue.REQUEST_TYPE.name())
-						.equals(newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name()).toString()))
-					throw new AlreadyExistingException("There is an already pending operation of the same type");
-			}
+			newUID = "REQUEST_" + newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name()) + "@" + ownerId;
+		} else if (newData.getDataType() == UserData.CONFIGURATION) {
+			newUID = newData.getDataType().name() + "@" + ownerId;
+		} else {
+			newUID = UUID.randomUUID().toString();
 		}
-		if(newData.getDataAttributes() == null)
+		Optional<DataEntity> existingDataOptional = dataDao.findById(newUID);
+		if(existingDataOptional.isPresent())
+			throw new AlreadyExistingException();
+		
+		newData.setDataId(newUID);
+		newData.setCreatedTimestamp(new Date());
+
+		if (newData.getDataAttributes() == null)
 			newData.setDataAttributes(new HashMap<>());
-		if (file != null) {
-			newData.getDataAttributes().put(DataKeyValue.ATTACHMENT.name(), Boolean.TRUE);
-			try {
-				long size = file.getSize();
-				userFiles.saveUploadedFile(file,
-						ServerDefaults.SERVER_USER_DATA_PATH + "/" + existingOwner.getUid() + "/", newUID, true); // True for encrypted
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		} else
-			newData.getDataAttributes().put(DataKeyValue.ATTACHMENT.name(), Boolean.FALSE);
+		newData.getDataAttributes().put(DataKeyValue.ATTACHMENT.name(), Boolean.FALSE);
 		DataEntity dataEntity = this.deConverter.fromBoundary(newData);
 		existingOwner.addDataToUser(dataEntity);
 
 		this.dataDao.save(dataEntity);
 		this.userDao.save(existingOwner);
 		return this.deConverter.toBoundary(dataEntity);
-
 	}
 
 	@Override
+	@Transactional
+	public DataBoundary addData(DataBoundary newData, MultipartFile file) { // Only devices can upload files to their
+																			// accounts
+		validations.assertNull(newData);
+		validations.assertNull(newData.getDataType());
+		validations.assertValidDataType(newData.getDataType().name());
+		if (newData.getDataType() == UserData.REQUEST || newData.getDataType() == UserData.CONFIGURATION
+				|| newData.getDataType() == UserData.NOTIFCATION)
+			throw new BadRequestException("Call to wrong method");
+
+		String authenticatedUser = session.retrieveAuthenticatedUsername();
+		UserEntity existingOwner = userDao.findById(authenticatedUser)
+				.orElseThrow(() -> new NotFoundException("User not found"));
+
+		String newUID = UUID.randomUUID().toString();
+		Optional<DataEntity> existingDataOptional = dataDao.findById(newUID);
+
+		while (existingDataOptional.isPresent())
+			newUID = UUID.randomUUID().toString();
+
+		newData.setDataId(newUID);
+		newData.setCreatedTimestamp(new Date());
+		if (newData.getDataAttributes() == null)
+			newData.setDataAttributes(new HashMap<>());
+		newData.getDataAttributes().put(DataKeyValue.ATTACHMENT.name(), Boolean.TRUE);
+		try {
+			long size = file.getSize();
+			userFiles.saveUploadedFile(file, ServerDefaults.SERVER_USER_DATA_PATH + "/" + existingOwner.getUid() + "/",
+					newUID, true); // Encrypted
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		DataEntity dataEntity = this.deConverter.fromBoundary(newData);
+		existingOwner.addDataToUser(dataEntity);
+
+		List<DataEntity> allRequests = dataDao.findAllByDataTypeAndDataOwnerUid(UserData.REQUEST.name(),
+				authenticatedUser);
+		for (DataEntity entity : allRequests) {
+			// Look for corresponding request in the database and remove it..
+			if (jsConverter.JSONToMap(entity.getDataAttributes()).get(DataKeyValue.REQUEST_TYPE.name()).toString()
+					.equals(newData.getDataType().name()))
+				this.dataDao.delete(entity);
+		}
+		this.dataDao.save(dataEntity);
+		this.userDao.save(existingOwner);
+		return this.deConverter.toBoundary(dataEntity);
+	}
+
+	@Override
+	@Transactional
 	public DataBoundary updateData(DataBoundary update) {
 		validations.assertNull(update);
 		validations.assertNull(update.getDataId());
@@ -188,7 +233,7 @@ public class DataServiceJpa implements DataService {
 	}
 
 	@Override
-	@Transactional
+	@Transactional(readOnly = true)
 	public void deleteAllData(String deviceId) {
 		validations.assertNull(deviceId);
 

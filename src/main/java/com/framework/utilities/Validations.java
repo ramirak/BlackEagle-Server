@@ -30,7 +30,7 @@ public class Validations {
 		if (auth == null || !auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(userRole)))
 			throw new UnauthorizedRequest("User does not own the required privileges");
 	}
-
+	
 	public void assertValidDataType(String type) {
 		for (UserData ud : UserData.values()) {
 			if (ud.name().equals(type)) {

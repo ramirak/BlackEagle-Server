@@ -11,7 +11,7 @@ public interface ServerDefaults extends ServerTime{
 	MAX_STORAGE_PER_USER = 2,
 	MAX_NUM_DEVICES = 5,
 	MAX_CACHE_SIZE = 1000000,
-	MAX_REQUEST_PER_MINUTE = 50;
+	MAX_REQUEST_PER_MINUTE = 15;
 	
 	public final boolean 
 	FORCE_EMAIL_VERIFICATION = true;

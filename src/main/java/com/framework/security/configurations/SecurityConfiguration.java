@@ -47,6 +47,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 				 * ------------------------ RULES SUMMARY ------------------------
 				 * Users with role [PRE_AUTH] can not access [Admin/User/Device/Data] API
 				 * Users with role [Player, Device] can not access [Admin] API
+				 * Users with role [Player, Admin] can not upload any file
 				 * Users with role [Device] can not access [User/Device] API
 				 * Users with role [Device] can not alter or remove data 
 				 * Users with role [Admin] can not access [Data] API 
@@ -74,6 +75,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 						"/data/getAll/**"
 				)
 				.hasAnyAuthority("PLAYER","DEVICE")
+				.antMatchers(
+						"/data/upload"
+				)
+				.hasAnyAuthority("DEVICE")
 				.antMatchers(
 						"/admins/**"			
 				)

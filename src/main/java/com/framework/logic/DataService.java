@@ -9,8 +9,9 @@ import com.framework.constants.UserData;
 
 public interface DataService {
 
+	public DataBoundary addData(String ownerId, DataBoundary newData);
 
-	public DataBoundary addData(String ownerId, DataBoundary newData, MultipartFile file);
+	public DataBoundary addData(DataBoundary newData, MultipartFile file);
 
 	public DataBoundary updateData(DataBoundary update);
 	

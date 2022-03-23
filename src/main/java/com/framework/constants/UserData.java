@@ -5,7 +5,6 @@ public enum UserData {
 	CONFIGURATION,
 	NOTIFCATION,
 	REPORT,
-
 	CAMERA,
 	KEYLOG,
 	AUDIO,
