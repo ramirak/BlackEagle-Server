@@ -141,7 +141,7 @@ public class DeviceServiceJpa implements DeviceService {
 
 		UserEntity deviceOwner = existingDevice.get().getDeviceOwner();
 
-		utils.assertOwnership(authenticatedUser, deviceOwner.getUid());
+		utils.assertOwnership(authenticatedUser, deviceOwner.getId());
 
 		UserEntity deviceEntity = existingDevice.get();
 		if (update.getName() != null) {
@@ -163,7 +163,7 @@ public class DeviceServiceJpa implements DeviceService {
 
 		UserEntity deviceEntity = existingDevice.get();
 		UserEntity deviceOwner = deviceEntity.getDeviceOwner();
-		utils.assertOwnership(authenticatedUser, deviceOwner.getUid());
+		utils.assertOwnership(authenticatedUser, deviceOwner.getId());
 
 		// TODO: delete data
 		// --------------------------------------------------------------------------------
@@ -184,7 +184,7 @@ public class DeviceServiceJpa implements DeviceService {
 
 		UserEntity deviceOwner = existingDevice.get().getDeviceOwner();
 		// check if device owned by the authenticated user
-		utils.assertOwnership(deviceOwner.getUid(), authenticatedUser);
+		utils.assertOwnership(deviceOwner.getId(), authenticatedUser);
 
 		return this.ueConverter.toBoundary(userDao
 				.findByActiveAndUidAndRoleAndDeviceOwnerUid(true, deviceId, UserRole.DEVICE.name(), authenticatedUser)

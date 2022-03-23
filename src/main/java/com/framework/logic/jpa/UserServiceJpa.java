@@ -246,7 +246,7 @@ public class UserServiceJpa implements UserService {
 		// Only one role per user, set current saved role
 		grantedAuthorities.add(new SimpleGrantedAuthority(ue.getRole()));
 
-		return new org.springframework.security.core.userdetails.User(ue.getUid(),
+		return new org.springframework.security.core.userdetails.User(ue.getId(),
 				ue.getActivePasswordEntity().getPassword(), grantedAuthorities);
 	}
 

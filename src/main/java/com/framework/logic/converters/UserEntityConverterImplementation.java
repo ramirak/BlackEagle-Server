@@ -26,7 +26,7 @@ public class UserEntityConverterImplementation implements EntityConverter<UserEn
 		userBoundary.setRole(UserRole.valueOf(entity.getRole()));
 		userBoundary.setName(entity.getName());
 		PasswordBoundary pb = peConverter.toBoundary(entity.getActivePasswordEntity());
-		UserIdBoundary uidBoundary = new UserIdBoundary(entity.getUid(), pb);
+		UserIdBoundary uidBoundary = new UserIdBoundary(entity.getId(), pb);
 		userBoundary.setUserId(uidBoundary);
 		return userBoundary;
 	}

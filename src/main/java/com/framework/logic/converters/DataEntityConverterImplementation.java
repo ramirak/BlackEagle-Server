@@ -21,7 +21,7 @@ public class DataEntityConverterImplementation implements EntityConverter<DataEn
 		DataBoundary dataBoundary = new DataBoundary();
 		dataBoundary.setCreatedTimestamp(entity.getCreatedTimestamp());
 		dataBoundary.setDataAttributes(jsConverter.JSONToMap(entity.getDataAttributes()));
-		dataBoundary.setDataId(entity.getDataId());
+		dataBoundary.setDataId(entity.getId());
 		dataBoundary.setDataType(UserData.valueOf(entity.getDataType()));
 		return dataBoundary;
 	}

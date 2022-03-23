@@ -8,18 +8,26 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
+import javax.persistence.PostLoad;
+import javax.persistence.PreRemove;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
+
+import org.springframework.data.domain.Persistable;
 
 @Entity
 @Table(name = "Data")
-public class DataEntity {
+public class DataEntity implements Persistable<String>{
 	@Id
 	private String dataId;
 	private String dataType;
 	private Date createdTimestamp;
 	private String dataAttributes;
+	
+	@Transient
+	private boolean update;
 	
 	@ManyToOne
 	@JoinColumn(name = "data_owner")
@@ -29,7 +37,8 @@ public class DataEntity {
 	public DataEntity() {
 	}
 	
-	public String getDataId() {
+	@Override
+	public String getId() {
 		return dataId;
 	}
 
@@ -90,6 +99,25 @@ public class DataEntity {
 				&& Objects.equals(dataOwner, other.dataOwner) && Objects.equals(dataType, other.dataType);
 	}
 	
+
+    public boolean isUpdate() {
+        return this.update;
+    }
+
+    public void setUpdate(boolean update) {
+        this.update = update;
+    }
+
+    @Override
+    public boolean isNew() {
+        return !this.update;
+    }
+
+    @PreRemove
+    @PostLoad
+    void markUpdated() {
+        this.update = true;
+    }
 	
 }
 

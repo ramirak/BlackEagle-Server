@@ -15,16 +15,25 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.PostLoad;
+import javax.persistence.PreRemove;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.SortNatural;
+import org.springframework.data.domain.Persistable;
+
 import com.framework.constants.PasswordsDefaults;
 
 @Entity
 @Table(name = "Users")
-public class UserEntity {
+public class UserEntity implements Persistable<String>{
 	@Id
 	private String uid;
+	
+	@Transient // Save -> update / create
+	private boolean update; // If true -> not new entity, If false, create a new entity
+	  
 	private String role;
 	private String name;
 	private int deviceCount;
@@ -54,8 +63,9 @@ public class UserEntity {
 		this.userData = new HashSet<>();
 		this.devices = new HashSet<>();
 	}
-
-	public String getUid() {
+	
+	@Override
+	public String getId() {
 		return uid;
 	}
 
@@ -196,5 +206,23 @@ public class UserEntity {
 		this.active = active;
 	}
 
+    public boolean isUpdate() {
+        return this.update;
+    }
+
+    public void setUpdate(boolean update) {
+        this.update = update;
+    }
+
+    @Override
+    public boolean isNew() {
+        return !this.update;
+    }
+
+    @PreRemove
+    @PostLoad
+    void markUpdated() {
+        this.update = true;
+    }
 
 }

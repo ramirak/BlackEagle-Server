@@ -1,7 +1,6 @@
 package com.framework.logic.jpa;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -100,7 +99,7 @@ public class DataServiceJpa implements DataService {
 				.orElseThrow(() -> new NotFoundException("User not found: " + ownerId));
 
 		if (!ownerId.equals(authenticatedUser))
-			validations.assertOwnership(authenticatedUser, existingOwner.getDeviceOwner().getUid());
+			validations.assertOwnership(authenticatedUser, existingOwner.getDeviceOwner().getId());
 
 		String newUID = UUID.randomUUID().toString();
 
@@ -165,7 +164,7 @@ public class DataServiceJpa implements DataService {
 		newData.getDataAttributes().put(DataKeyValue.ATTACHMENT.name(), Boolean.TRUE);
 		try {
 			long size = file.getSize();
-			userFiles.saveUploadedFile(file, ServerDefaults.SERVER_USER_DATA_PATH + "/" + existingOwner.getUid() + "/",
+			userFiles.saveUploadedFile(file, ServerDefaults.SERVER_USER_DATA_PATH + "/" + existingOwner.getId() + "/",
 					newUID, true); // Encrypted
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -197,7 +196,7 @@ public class DataServiceJpa implements DataService {
 		Optional<DataEntity> existingData = dataDao.findById(update.getDataId());
 		if (existingData.isPresent()) {
 			DataEntity dataEntity = existingData.get();
-			validations.assertOwnership(authenticatedUser, dataEntity.getDataOwner().getUid());
+			validations.assertOwnership(authenticatedUser, dataEntity.getDataOwner().getDeviceOwner().getId());
 			if (update.getDataAttributes() != null) {
 				dataEntity.setDataAttributes(jsConverter.mapToJSON(update.getDataAttributes()));
 			}
@@ -221,28 +220,26 @@ public class DataServiceJpa implements DataService {
 		UserEntity existingDevice = userDao.findById(deviceId)
 				.orElseThrow(() -> new NotFoundException("Device not found: " + deviceId));
 
-		validations.assertOwnership(existingDevice.getDeviceOwner().getUid(), authenticatedUser);
+		validations.assertOwnership(existingDevice.getDeviceOwner().getId(), authenticatedUser);
 
 		Optional<DataEntity> existingData = this.dataDao.findById(dataId);
 		if (!existingData.isPresent())
 			throw new NotFoundException("Could not find data by id " + dataId);
-
 		DataEntity dataEntity = existingData.get();
 		this.dataDao.delete(dataEntity);
 		return deConverter.toBoundary(dataEntity);
 	}
 
 	@Override
-	@Transactional(readOnly = true)
+	@Transactional
 	public void deleteAllData(String deviceId) {
 		validations.assertNull(deviceId);
 
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
 		UserEntity existingDevice = userDao.findById(deviceId)
 				.orElseThrow(() -> new NotFoundException("Device not found: " + deviceId));
-
-		validations.assertOwnership(existingDevice.getDeviceOwner().getUid(), authenticatedUser);
-		this.dataDao.deleteAll(existingDevice.getUserData());
+		validations.assertOwnership(existingDevice.getDeviceOwner().getId(), authenticatedUser);
+		this.dataDao.deleteAll();
 	}
 
 	@Override
@@ -261,14 +258,14 @@ public class DataServiceJpa implements DataService {
 			} else
 				throw new NotFoundException("Device not found: " + uid);
 
-			validations.assertOwnership(authenticatedUser, deviceEntity.getDeviceOwner().getUid());
+			validations.assertOwnership(authenticatedUser, deviceEntity.getDeviceOwner().getId());
 		}
 		DataEntity de = dataDao.findByDataIdAndDataOwnerUid(dataId, uid);
 		DataBoundary db = deConverter.toBoundary(de);
 
 		if (db.getDataAttributes().containsKey(DataKeyValue.ATTACHMENT.name())
 				&& db.getDataAttributes().get(DataKeyValue.ATTACHMENT.name()) == Boolean.TRUE) {
-			String path = ServerDefaults.SERVER_USER_DATA_PATH + "/" + de.getDataOwner().getUid() + "/";
+			String path = ServerDefaults.SERVER_USER_DATA_PATH + "/" + de.getDataOwner().getId() + "/";
 			byte[] fileData = this.userFiles.getUploadedFile(path, dataId, true); // True for decrypted
 			db.getDataAttributes().put(DataKeyValue.DATA.name(), fileData);
 		}
@@ -289,7 +286,7 @@ public class DataServiceJpa implements DataService {
 			} else
 				throw new NotFoundException("Device not found: " + uid);
 
-			validations.assertOwnership(authenticatedUser, deviceEntity.getDeviceOwner().getUid());
+			validations.assertOwnership(authenticatedUser, deviceEntity.getDeviceOwner().getId());
 		}
 		return this.dataDao
 				.findAllByDataTypeAndDataOwnerUid(type.name(), uid,
