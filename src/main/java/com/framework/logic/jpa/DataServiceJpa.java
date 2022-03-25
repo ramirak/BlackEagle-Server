@@ -1,6 +1,7 @@
 package com.framework.logic.jpa;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -266,8 +267,8 @@ public class DataServiceJpa implements DataService {
 		if (db.getDataAttributes().containsKey(DataKeyValue.ATTACHMENT.name())
 				&& db.getDataAttributes().get(DataKeyValue.ATTACHMENT.name()) == Boolean.TRUE) {
 			String path = ServerDefaults.SERVER_USER_DATA_PATH + "/" + de.getDataOwner().getId() + "/";
-			byte[] fileData = this.userFiles.getUploadedFile(path, dataId, true); // True for decrypted
-			db.getDataAttributes().put(DataKeyValue.DATA.name(), fileData);
+			byte[] fileData = this.userFiles.getUploadedFile(path, dataId, true, true); // Decrypted + Base64 Encoded
+			db.getDataAttributes().put(DataKeyValue.DATA.name(), new String(fileData, StandardCharsets.UTF_8)); // Bytes as ascii string
 		}
 		return db;
 	}

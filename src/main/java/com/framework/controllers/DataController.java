@@ -35,7 +35,7 @@ public class DataController {
 	@RequestMapping(path = "/data/upload", 
 			method = RequestMethod.POST, 
 			produces = MediaType.APPLICATION_JSON_VALUE, 
-			consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE })
+			consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public DataBoundary upload(@RequestParam(value = "file", required = true) MultipartFile file,
 			@RequestPart DataBoundary newData) {
 		return dataService.addData(newData, file);

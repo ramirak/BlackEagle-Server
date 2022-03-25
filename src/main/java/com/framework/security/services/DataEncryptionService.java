@@ -37,7 +37,7 @@ public class DataEncryptionService {
 		}
 	}
 
-	public String encrypt(String input) throws NoSuchPaddingException, NoSuchAlgorithmException,
+	public byte[] encrypt(byte[] input) throws NoSuchPaddingException, NoSuchAlgorithmException,
 			InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
 		Cipher cipher = Cipher.getInstance(algorithm);
 
@@ -48,7 +48,7 @@ public class DataEncryptionService {
 
 		// Encrypt the input
 		cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec);
-		byte[] cipherText = cipher.doFinal(input.getBytes());
+		byte[] cipherText = cipher.doFinal(input);
 
 		// Add the new IV to the beginning of the cipherText
 		byte[] cipherWithIv = new byte[iv.length + cipherText.length];
@@ -56,10 +56,10 @@ public class DataEncryptionService {
 		System.arraycopy(cipherText, 0, cipherWithIv, iv.length, cipherText.length);
 
 		// Encode with base64
-		return Base64.getEncoder().encodeToString(cipherWithIv);
+		return Base64.getEncoder().encode(cipherWithIv);
 	}
 
-	public String decrypt(String cipherText) throws NoSuchPaddingException, NoSuchAlgorithmException,
+	public byte[] decrypt(byte[] cipherText, boolean encode) throws NoSuchPaddingException, NoSuchAlgorithmException,
 			InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
 
 		// Base64 decode to get the CipherText with its IV
@@ -78,8 +78,9 @@ public class DataEncryptionService {
 		Cipher cipher = Cipher.getInstance(algorithm);
 		cipher.init(Cipher.DECRYPT_MODE, key, ivSpec);
 		byte[] plainText = cipher.doFinal(originalCipherText);
-
-		return new String(plainText);
+		if(encode)
+			return Base64.getEncoder().encode(plainText);
+		return plainText;
 	}
 
 }
