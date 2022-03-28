@@ -238,7 +238,7 @@ public class UserServiceJpa implements UserService {
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		Optional<UserEntity> exitingUser = userDao.findById(username);
 		if (!exitingUser.isPresent())
-			throw new NotFoundException("User does not exists in the database");
+			throw new UsernameNotFoundException("User does not exists in the database");
 		UserEntity ue = exitingUser.get();
 
 		ArrayList<GrantedAuthority> grantedAuthorities = new ArrayList<>();

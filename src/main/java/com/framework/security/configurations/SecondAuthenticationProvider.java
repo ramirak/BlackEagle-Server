@@ -11,6 +11,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import com.framework.constants.PasswordsDefaults;
 import com.framework.exceptions.SessionExpiredException;
@@ -43,7 +44,14 @@ public class SecondAuthenticationProvider implements AuthenticationProvider {
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 		String username = authentication.getName();
 		String password = (String) authentication.getCredentials();
-		UserDetails user = userService.loadUserByUsername(username);
+		
+		UserDetails user;
+		try {
+			user = userService.loadUserByUsername(username);
+		} catch (UsernameNotFoundException e1) {
+			e1.printStackTrace();
+			throw new BadCredentialsException("Incorrect username or password");
+		}
 		
 		if (session.getAuthenticationDetails() != null && session.hasRole(PasswordsDefaults.TEMP_TOKEN, session.retrieveAuthorities())) {
 			try {

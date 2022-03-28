@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.framework.boundaries.DataBoundary;
 import com.framework.constants.DataKeyValue;
+import com.framework.constants.FilterType;
 import com.framework.constants.ServerDefaults;
 import com.framework.constants.UserData;
 import com.framework.constants.UserRole;
@@ -89,12 +90,12 @@ public class DataServiceJpa implements DataService {
 		validations.assertNull(ownerId);
 		validations.assertNull(newData);
 		validations.assertNull(newData.getDataType());
+		validations.assertNull(newData.getDataAttributes());
 		validations.assertValidDataType(newData.getDataType().name());
 
-		if (newData.getDataType() != UserData.REQUEST && newData.getDataType() != UserData.CONFIGURATION
-				&& newData.getDataType() != UserData.NOTIFCATION)
+		if (newData.getDataType() != UserData.REQUEST && newData.getDataType() != UserData.CONFIGURATION)
 			throw new BadRequestException("Call to wrong method");
-
+		
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
 		UserEntity existingOwner = userDao.findById(ownerId)
 				.orElseThrow(() -> new NotFoundException("User not found: " + ownerId));
@@ -109,25 +110,40 @@ public class DataServiceJpa implements DataService {
 			if (!existingOwner.getRole().equals(UserRole.DEVICE.name()))
 				throw new UnauthorizedRequest("Only devices can have Data of type Request");
 			// Check if the request type is valid
-			if (newData.getDataAttributes().containsKey(DataKeyValue.REQUEST_TYPE.name())) {
-				validations.assertValidDataType(
-						newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name()).toString());
-			}
-			newUID = "REQUEST_" + newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name()) + "@" + ownerId;
+
+			Object requestType = newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name());
+			if (requestType != null)
+				validations.assertValidDataType(requestType.toString());
+
+			newUID = "REQUEST_" + requestType.toString() + "@" + ownerId;
 		} else if (newData.getDataType() == UserData.CONFIGURATION) {
+			if (existingOwner.getRole().equals(UserRole.DEVICE.name())) {
+				Object filterA = newData.getDataAttributes().get(FilterType.FAKENEWS.name());
+				Object filterB = newData.getDataAttributes().get(FilterType.GAMBLING.name());
+				Object filterC = newData.getDataAttributes().get(FilterType.PORN.name());
+				Object filterD = newData.getDataAttributes().get(FilterType.SOCIAL.name());
+
+				if (filterA == null || !(filterA instanceof Boolean) ||
+						filterB == null || !(filterB instanceof Boolean) ||
+						filterC == null || !(filterC instanceof Boolean) ||
+						filterD == null || !(filterD instanceof Boolean))
+					throw new BadRequestException("Invalid filter type");
+				
+			} else { // User of either type PLAYER or ADMIN
+				
+			}
+
 			newUID = newData.getDataType().name() + "@" + ownerId;
 		} else {
 			newUID = UUID.randomUUID().toString();
 		}
 		Optional<DataEntity> existingDataOptional = dataDao.findById(newUID);
-		if(existingDataOptional.isPresent())
+		if (existingDataOptional.isPresent())
 			throw new AlreadyExistingException();
-		
+
 		newData.setDataId(newUID);
 		newData.setCreatedTimestamp(new Date());
 
-		if (newData.getDataAttributes() == null)
-			newData.setDataAttributes(new HashMap<>());
 		newData.getDataAttributes().put(DataKeyValue.ATTACHMENT.name(), Boolean.FALSE);
 		DataEntity dataEntity = this.deConverter.fromBoundary(newData);
 		existingOwner.addDataToUser(dataEntity);
@@ -268,7 +284,10 @@ public class DataServiceJpa implements DataService {
 				&& db.getDataAttributes().get(DataKeyValue.ATTACHMENT.name()) == Boolean.TRUE) {
 			String path = ServerDefaults.SERVER_USER_DATA_PATH + "/" + de.getDataOwner().getId() + "/";
 			byte[] fileData = this.userFiles.getUploadedFile(path, dataId, true, true); // Decrypted + Base64 Encoded
-			db.getDataAttributes().put(DataKeyValue.DATA.name(), new String(fileData, StandardCharsets.UTF_8)); // Bytes as ascii string
+			db.getDataAttributes().put(DataKeyValue.DATA.name(), new String(fileData, StandardCharsets.UTF_8)); // Bytes
+																												// as
+																												// ascii
+																												// string
 		}
 		return db;
 	}

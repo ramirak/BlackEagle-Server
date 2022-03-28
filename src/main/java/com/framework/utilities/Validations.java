@@ -3,6 +3,8 @@ package com.framework.utilities;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import com.framework.constants.FilterType;
 import com.framework.constants.UserData;
 import com.framework.exceptions.BadRequestException;
 import com.framework.exceptions.UnauthorizedRequest;
@@ -30,8 +32,11 @@ public class Validations {
 		if (auth == null || !auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(userRole)))
 			throw new UnauthorizedRequest("User does not own the required privileges");
 	}
-	
+
 	public void assertValidDataType(String type) {
+		if(type == null)
+			throw new BadRequestException("Invalid request type");
+
 		for (UserData ud : UserData.values()) {
 			if (ud.name().equals(type)) {
 				return;
