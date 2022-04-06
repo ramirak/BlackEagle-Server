@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.framework.boundaries.DataBoundary;
+import com.framework.constants.ConfigType;
 import com.framework.constants.DataKeyValue;
 import com.framework.constants.FilterType;
 import com.framework.constants.ServerDefaults;
@@ -44,7 +45,8 @@ public class DataServiceJpa implements DataService {
 	private Validations validations;
 	private SessionAttributes session;
 	private UserFiles userFiles;
-
+	private DataHelperService dhs;
+	
 	public DataServiceJpa() {
 	}
 
@@ -83,6 +85,10 @@ public class DataServiceJpa implements DataService {
 		this.validations = validations;
 	}
 
+	@Autowired
+	public void setDhs(DataHelperService dhs) {
+		this.dhs = dhs;
+	}
 	@Override
 	@Transactional
 	public DataBoundary addData(String ownerId, DataBoundary newData) { // Each user can upload boundaries to himself or
@@ -91,10 +97,9 @@ public class DataServiceJpa implements DataService {
 		validations.assertNull(newData);
 		validations.assertNull(newData.getDataType());
 		validations.assertNull(newData.getDataAttributes());
-		validations.assertValidDataType(newData.getDataType().name());
+		dhs.checkDataType(newData.getDataType().name());
 
-		if (newData.getDataType() != UserData.REQUEST && newData.getDataType() != UserData.CONFIGURATION)
-			throw new BadRequestException("Call to wrong method");
+		dhs.allowedTypes(newData, new UserData[] {UserData.REQUEST, UserData.CONFIGURATION});
 		
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
 		UserEntity existingOwner = userDao.findById(ownerId)
@@ -106,37 +111,13 @@ public class DataServiceJpa implements DataService {
 		String newUID = UUID.randomUUID().toString();
 
 		if (newData.getDataType() == UserData.REQUEST) {
-			// Check if the owner is a device
-			if (!existingOwner.getRole().equals(UserRole.DEVICE.name()))
-				throw new UnauthorizedRequest("Only devices can have Data of type Request");
-			// Check if the request type is valid
-
-			Object requestType = newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name());
-			if (requestType != null)
-				validations.assertValidDataType(requestType.toString());
-
-			newUID = "REQUEST_" + requestType.toString() + "@" + ownerId;
+			dhs.checkRequest(existingOwner, newData);
+			newUID = "REQUEST_" + newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name()).toString() + "@" + ownerId;
 		} else if (newData.getDataType() == UserData.CONFIGURATION) {
-			if (existingOwner.getRole().equals(UserRole.DEVICE.name())) {
-				Object filterA = newData.getDataAttributes().get(FilterType.FAKENEWS.name());
-				Object filterB = newData.getDataAttributes().get(FilterType.GAMBLING.name());
-				Object filterC = newData.getDataAttributes().get(FilterType.PORN.name());
-				Object filterD = newData.getDataAttributes().get(FilterType.SOCIAL.name());
-
-				if (filterA == null || !(filterA instanceof Boolean) ||
-						filterB == null || !(filterB instanceof Boolean) ||
-						filterC == null || !(filterC instanceof Boolean) ||
-						filterD == null || !(filterD instanceof Boolean))
-					throw new BadRequestException("Invalid filter type");
-				
-			} else { // User of either type PLAYER or ADMIN
-				
-			}
-
+			dhs.checkConfig(existingOwner, newData);
 			newUID = newData.getDataType().name() + "@" + ownerId;
-		} else {
-			newUID = UUID.randomUUID().toString();
-		}
+		} 
+		
 		Optional<DataEntity> existingDataOptional = dataDao.findById(newUID);
 		if (existingDataOptional.isPresent())
 			throw new AlreadyExistingException();
@@ -159,11 +140,10 @@ public class DataServiceJpa implements DataService {
 																			// accounts
 		validations.assertNull(newData);
 		validations.assertNull(newData.getDataType());
-		validations.assertValidDataType(newData.getDataType().name());
-		if (newData.getDataType() == UserData.REQUEST || newData.getDataType() == UserData.CONFIGURATION
-				|| newData.getDataType() == UserData.NOTIFCATION)
-			throw new BadRequestException("Call to wrong method");
-
+		dhs.checkDataType(newData.getDataType().name());
+		
+		dhs.notAllowedTypes(newData, new UserData[] {UserData.REQUEST, UserData.CONFIGURATION, UserData.NOTIFCATION});
+		
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
 		UserEntity existingOwner = userDao.findById(authenticatedUser)
 				.orElseThrow(() -> new NotFoundException("User not found"));

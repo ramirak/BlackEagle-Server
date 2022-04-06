@@ -1,0 +1,105 @@
+package com.framework.logic.jpa;
+
+import org.springframework.stereotype.Service;
+
+import com.framework.boundaries.DataBoundary;
+import com.framework.constants.CommandType;
+import com.framework.constants.ConfigType;
+import com.framework.constants.DataKeyValue;
+import com.framework.constants.FilterType;
+import com.framework.constants.UserData;
+import com.framework.constants.UserRole;
+import com.framework.data.UserEntity;
+import com.framework.exceptions.BadRequestException;
+import com.framework.exceptions.UnauthorizedRequest;
+
+
+@Service
+public class DataHelperService {
+
+	public void notAllowedTypes(DataBoundary newData, UserData[] types) {
+		for (int i = 0; i < types.length; i++) {
+			if (newData.getDataType() == types[i])
+				throw new BadRequestException("Call to wrong method");
+		}
+		return;
+	}
+
+	public void allowedTypes(DataBoundary newData, UserData[] types) {
+		for (int i = 0; i < types.length; i++) {
+			if (newData.getDataType() == types[i])
+				return;
+		}
+		throw new BadRequestException("Call to wrong method");
+	}
+
+	public void checkDataType(String type) {
+		if (type == null)
+			throw new BadRequestException("Invalid request type");
+
+		for (UserData ud : UserData.values()) {
+			if (ud.name().equals(type)) {
+				return;
+			}
+		}
+		throw new BadRequestException("Invalid request type");
+	}
+
+	public void checkRequest(UserEntity existingOwner, DataBoundary newData) {
+		// Check if the owner is a device
+		if (!existingOwner.getRole().equals(UserRole.DEVICE.name()))
+			throw new UnauthorizedRequest("Only devices can have Data of type Request");
+		// Check if the request type is valid
+
+		Object requestType = newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name());
+		if (requestType != null)
+			checkDataType(requestType.toString());
+		if (requestType == UserData.COMMAND) {
+			Object cmd = newData.getDataAttributes().get(DataKeyValue.COMMAND_TYPE.name());
+			requireCommand(cmd.toString());
+			
+			Object cmdParam = newData.getDataAttributes().get(DataKeyValue.COMMAND_TYPE.name());
+			requireParam(cmd.toString(), cmdParam);
+		}
+	}
+
+	public void checkConfig(UserEntity existingOwner, DataBoundary newData) {
+		if (existingOwner.getRole().equals(UserRole.DEVICE.name())) {
+			Object filterA = newData.getDataAttributes().get(FilterType.FAKENEWS.name());
+			Object filterB = newData.getDataAttributes().get(FilterType.GAMBLING.name());
+			Object filterC = newData.getDataAttributes().get(FilterType.PORN.name());
+			Object filterD = newData.getDataAttributes().get(FilterType.SOCIAL.name());
+
+			if (filterA == null || !(filterA instanceof Boolean) || filterB == null || !(filterB instanceof Boolean)
+					|| filterC == null || !(filterC instanceof Boolean) || filterD == null
+					|| !(filterD instanceof Boolean))
+				throw new BadRequestException("Invalid filter type");
+
+		} else { // User of either type PLAYER or ADMIN
+			Object optA = newData.getDataAttributes().get(ConfigType.NOTIFICATION_EMAIL.name());
+			Object optB = newData.getDataAttributes().get(ConfigType.DELETE_IF_INACTIVE.name());
+			if (optA == null || !(optA instanceof Boolean) || optB == null || !(optB instanceof Boolean))
+				throw new BadRequestException("Invalid config type");
+		}
+	}
+
+	private void requireCommand(String cmd) {
+		try {
+			CommandType.valueOf(cmd);
+		} catch (NullPointerException np) {
+			throw new BadRequestException("A command is required");
+		} catch (IllegalArgumentException ex) {
+			throw new BadRequestException("Invalid command type");
+		}
+	}
+	
+	private void requireParam(String cmd, Object param) {
+		if (param == null)
+			if (cmd.equals(CommandType.taskkill.name()) || cmd.equals(CommandType.tree.name())) {
+				throw new BadRequestException("This command requires additional parameter");
+			}
+		if(!param.toString().matches("([a-zA-Z]:)?(\\\\[a-zA-Z0-9_.-]+)+\\\\?")) // Pattern for a path
+			throw new BadRequestException("Invalid Parameter");
+	}
+
+}
