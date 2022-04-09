@@ -11,13 +11,13 @@ public interface ServerDefaults extends ServerTime{
 	MAX_STORAGE_PER_USER = 2,
 	MAX_NUM_DEVICES = 5,
 	MAX_CACHE_SIZE = 1000000,
-	MAX_REQUEST_PER_MINUTE = 15;
+	MAX_REQUEST_PER_MINUTE = 30;
 	
 	public final boolean 
 	FORCE_EMAIL_VERIFICATION = true;
 	
 	public final String 
 	DEFAULT_ENCRYPTION_METHOD = "AES/CBC/PKCS5Padding",
-	SERVER_EMAIL = "******@gmail.com",
+	SERVER_EMAIL = "blackeagle-services@outlook.com",
 	SERVER_USER_DATA_PATH = "data/users";
 }

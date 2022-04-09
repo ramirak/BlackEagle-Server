@@ -13,7 +13,6 @@ import com.framework.data.UserEntity;
 import com.framework.exceptions.BadRequestException;
 import com.framework.exceptions.UnauthorizedRequest;
 
-
 @Service
 public class DataHelperService {
 
@@ -54,10 +53,10 @@ public class DataHelperService {
 		Object requestType = newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name());
 		if (requestType != null)
 			checkDataType(requestType.toString());
-		if (requestType == UserData.COMMAND) {
+		if (requestType.toString().equals(UserData.COMMAND.name())) {
 			Object cmd = newData.getDataAttributes().get(DataKeyValue.COMMAND_TYPE.name());
 			requireCommand(cmd.toString());
-			
+
 			Object cmdParam = newData.getDataAttributes().get(DataKeyValue.COMMAND_TYPE.name());
 			requireParam(cmd.toString(), cmdParam);
 		}
@@ -70,15 +69,15 @@ public class DataHelperService {
 			Object filterC = newData.getDataAttributes().get(FilterType.PORN.name());
 			Object filterD = newData.getDataAttributes().get(FilterType.SOCIAL.name());
 
-			if (filterA == null || !(filterA instanceof Boolean) || filterB == null || !(filterB instanceof Boolean)
-					|| filterC == null || !(filterC instanceof Boolean) || filterD == null
-					|| !(filterD instanceof Boolean))
+			if (filterA == null || !(filterA instanceof String) || filterB == null || !(filterB instanceof String)
+					|| filterC == null || !(filterC instanceof String) || filterD == null
+					|| !(filterD instanceof String))
 				throw new BadRequestException("Invalid filter type");
 
 		} else { // User of either type PLAYER or ADMIN
 			Object optA = newData.getDataAttributes().get(ConfigType.NOTIFICATION_EMAIL.name());
 			Object optB = newData.getDataAttributes().get(ConfigType.DELETE_IF_INACTIVE.name());
-			if (optA == null || !(optA instanceof Boolean) || optB == null || !(optB instanceof Boolean))
+			if (optA == null || !(optA instanceof String) || optB == null || !(optB instanceof String))
 				throw new BadRequestException("Invalid config type");
 		}
 	}
@@ -92,13 +91,13 @@ public class DataHelperService {
 			throw new BadRequestException("Invalid command type");
 		}
 	}
-	
+
 	private void requireParam(String cmd, Object param) {
 		if (param == null)
 			if (cmd.equals(CommandType.taskkill.name()) || cmd.equals(CommandType.tree.name())) {
 				throw new BadRequestException("This command requires additional parameter");
 			}
-		if(!param.toString().matches("([a-zA-Z]:)?(\\\\[a-zA-Z0-9_.-]+)+\\\\?")) // Pattern for a path
+		if (!param.toString().matches("([a-zA-Z]:)?(\\\\[a-zA-Z0-9_.-]+)+\\\\?")) // Pattern for a path
 			throw new BadRequestException("Invalid Parameter");
 	}
 

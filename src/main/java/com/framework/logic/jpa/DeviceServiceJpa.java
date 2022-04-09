@@ -1,7 +1,9 @@
 package com.framework.logic.jpa;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -13,19 +15,25 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.framework.boundaries.DataBoundary;
 import com.framework.boundaries.PasswordBoundary;
 import com.framework.boundaries.UserBoundary;
 import com.framework.boundaries.UserIdBoundary;
+import com.framework.constants.FilterType;
 import com.framework.constants.ServerDefaults;
+import com.framework.constants.UserData;
 import com.framework.constants.UserRole;
+import com.framework.data.DataEntity;
 import com.framework.data.PasswordEntity;
 import com.framework.data.UserEntity;
+import com.framework.data.dao.DataDao;
 import com.framework.data.dao.PasswordDao;
 import com.framework.data.dao.UserDao;
 import com.framework.exceptions.ForbiddenException;
 import com.framework.exceptions.LimitExceededException;
 import com.framework.exceptions.NotFoundException;
 import com.framework.logic.DeviceService;
+import com.framework.logic.converters.DataEntityConverterImplementation;
 import com.framework.logic.converters.PasswordEntityConverterImlementation;
 import com.framework.logic.converters.UserEntityConverterImplementation;
 import com.framework.security.services.PasswordUtils;
@@ -36,8 +44,10 @@ import com.framework.utilities.Validations;
 public class DeviceServiceJpa implements DeviceService {
 	private UserDao userDao;
 	private PasswordDao passwordDao;
+	private DataDao dataDao;
 	private UserEntityConverterImplementation ueConverter;
 	private PasswordEntityConverterImlementation peConverter;
+	private DataEntityConverterImplementation deConverter;
 	private PasswordEncoder passwordEncoder;
 	private Validations utils;
 	private SessionAttributes session;
@@ -55,6 +65,11 @@ public class DeviceServiceJpa implements DeviceService {
 	public void setPasswordDao(PasswordDao passwordDao) {
 		this.passwordDao = passwordDao;
 	}
+	
+	@Autowired
+	public void setDataDao(DataDao dataDao) {
+		this.dataDao = dataDao;
+	}
 
 	@Autowired
 	public void setUeConverter(UserEntityConverterImplementation ueConverter) {
@@ -64,6 +79,11 @@ public class DeviceServiceJpa implements DeviceService {
 	@Autowired
 	public void setPeConverter(PasswordEntityConverterImlementation peConverter) {
 		this.peConverter = peConverter;
+	}
+	
+	@Autowired
+	public void setDeConverter(DataEntityConverterImplementation deConverter) {
+		this.deConverter = deConverter;
 	}
 
 	@Autowired
@@ -114,12 +134,27 @@ public class DeviceServiceJpa implements DeviceService {
 		String newKey = passUtils.generatePassword();
 		passBoundary.setPassword(passwordEncoder.encode(newKey));
 		device.setUserId(new UserIdBoundary(newUID, passBoundary));
+			
+		DataBoundary dataBoundary = new DataBoundary();
+		dataBoundary.setDataId(UserData.CONFIGURATION.name() + "@" + newUID);
+		dataBoundary.setDataType(UserData.CONFIGURATION);
+		dataBoundary.setCreatedTimestamp(new Date());
+		Map<String, Object> attributes = new HashMap<>();
+		attributes.put(FilterType.FAKENEWS.name(), "false");
+		attributes.put(FilterType.GAMBLING.name(), "false");
+		attributes.put(FilterType.PORN.name(), "false");
+		attributes.put(FilterType.SOCIAL.name(), "false");
+		dataBoundary.setDataAttributes(attributes);
+
 		UserEntity deviceEntity = this.ueConverter.fromBoundary(device);
 		PasswordEntity passEntity = this.peConverter.fromBoundary(passBoundary);
-
+		DataEntity dataEntity = this.deConverter.fromBoundary(dataBoundary);
+		
 		existingUser.addDeviceToUser(deviceEntity);
 		deviceEntity.addPassword(passEntity);
+		deviceEntity.addDataToUser(dataEntity);
 		passwordDao.save(passEntity);
+		dataDao.save(dataEntity);
 		userDao.save(deviceEntity);
 		userDao.save(existingUser);
 		// Return a boundary with original unhashed password

@@ -46,7 +46,7 @@ public class UserEntity implements Persistable<String>{
 	@OneToMany(mappedBy = "deviceOwner", cascade = CascadeType.ALL)
 	private Set<UserEntity> devices;
 
-	@OneToMany(mappedBy = "dataOwner")
+	@OneToMany(mappedBy = "dataOwner", cascade = CascadeType.REMOVE)
 	private Set<DataEntity> userData;
 
 	@SortNatural
