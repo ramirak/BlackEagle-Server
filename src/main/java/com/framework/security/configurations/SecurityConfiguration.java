@@ -17,6 +17,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.framework.constants.PasswordsDefaults;
+import com.framework.constants.ServerDefaults;
 import com.framework.logic.jpa.EventServiceJpa;
 import com.framework.security.services.DenialOfServiceProtection;
 
@@ -57,7 +59,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 						"/login", 
 						"/users/register"
 				)
-				.permitAll()
+				.hasAnyAuthority("ANONYMOUS",PasswordsDefaults.TEMP_TOKEN)
 				.antMatchers(
 						"/users/**"
 				)
@@ -87,8 +89,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 						"/**"			
 				).denyAll() // Deny all access if not matching one of the above rules..
 				.and()
-				.formLogin(form -> form.loginPage("/login")
-						.failureUrl("/login?error=true")).logout();
+				.logout();
 	}
 
 	@Bean

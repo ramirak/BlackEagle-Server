@@ -1,5 +1,7 @@
 package com.framework.logic.jpa;
 
+import java.nio.file.InvalidPathException;
+
 import org.springframework.stereotype.Service;
 
 import com.framework.boundaries.DataBoundary;
@@ -83,22 +85,25 @@ public class DataHelperService {
 	}
 
 	private void requireCommand(String cmd) {
-		try {
-			CommandType.valueOf(cmd);
-		} catch (NullPointerException np) {
-			throw new BadRequestException("A command is required");
-		} catch (IllegalArgumentException ex) {
-			throw new BadRequestException("Invalid command type");
+		for (CommandType type : CommandType.values()) {
+			if (type.name().equals(cmd))
+				return;
 		}
+		throw new BadRequestException("Invalid command type");
 	}
 
 	private void requireParam(String cmd, Object param) {
 		if (param == null)
 			if (cmd.equals(CommandType.taskkill.name()) || cmd.equals(CommandType.tree.name())) {
 				throw new BadRequestException("This command requires additional parameter");
+
 			}
-		if (!param.toString().matches("([a-zA-Z]:)?(\\\\[a-zA-Z0-9_.-]+)+\\\\?")) // Pattern for a path
+		try {
+			if (!param.toString().isEmpty())
+				java.nio.file.Paths.get(param.toString());
+		} catch (InvalidPathException err) {
 			throw new BadRequestException("Invalid Parameter");
+		}
 	}
 
 }
