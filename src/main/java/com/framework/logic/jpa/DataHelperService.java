@@ -53,13 +53,14 @@ public class DataHelperService {
 		// Check if the request type is valid
 
 		Object requestType = newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name());
+	
 		if (requestType != null)
 			checkDataType(requestType.toString());
 		if (requestType.toString().equals(UserData.COMMAND.name())) {
 			Object cmd = newData.getDataAttributes().get(DataKeyValue.COMMAND_TYPE.name());
 			requireCommand(cmd.toString());
 
-			Object cmdParam = newData.getDataAttributes().get(DataKeyValue.COMMAND_TYPE.name());
+			Object cmdParam = newData.getDataAttributes().get(DataKeyValue.COMMAND_PARAMETER.name());
 			requireParam(cmd.toString(), cmdParam);
 		}
 	}
@@ -85,24 +86,22 @@ public class DataHelperService {
 	}
 
 	private void requireCommand(String cmd) {
-		for (CommandType type : CommandType.values()) {
-			if (type.name().equals(cmd))
+		if (cmd.equals(CommandType.taskkill) ||
+			cmd.equals(CommandType.tasklist) ||
+			cmd.equals(CommandType.dirHidden) ||
+			cmd.equals(CommandType.dirOrdered))
 				return;
-		}
 		throw new BadRequestException("Invalid command type");
 	}
 
 	private void requireParam(String cmd, Object param) {
 		if (param == null)
-			if (cmd.equals(CommandType.taskkill.name()) || cmd.equals(CommandType.tree.name())) {
+			if (cmd.equals(CommandType.taskkill) || cmd.equals(CommandType.dirHidden)
+					|| cmd.equals(CommandType.dirOrdered)) {
 				throw new BadRequestException("This command requires additional parameter");
-
 			}
-		try {
-			if (!param.toString().isEmpty())
-				java.nio.file.Paths.get(param.toString());
-		} catch (InvalidPathException err) {
-			throw new BadRequestException("Invalid Parameter");
+		if(!param.toString().matches("([\\\\a-zA-Z0-9_.-])+")) {
+			throw new BadRequestException("Additional parameter should be a path or filename");
 		}
 	}
 

@@ -1,7 +1,9 @@
 package com.framework.constants;
 
-public enum CommandType {
-	tasklist,
-	taskkill,
-	tree,
+public interface CommandType {
+	String 
+	tasklist = "tasklist", 
+	taskkill = "taskkill /IM",
+	dirHidden = "dir /AH",
+	dirOrdered = "dir /ON";
 }

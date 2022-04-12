@@ -18,7 +18,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.framework.constants.PasswordsDefaults;
-import com.framework.constants.ServerDefaults;
 import com.framework.logic.jpa.EventServiceJpa;
 import com.framework.security.services.DenialOfServiceProtection;
 
@@ -54,14 +53,16 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 				 * Users with role [Device] can not alter or remove data 
 				 * Users with role [Admin] can not access [Data] API 
 				 * ---------------------------------------------------------------
-				 */ 
+				 */
 				.antMatchers( 
 						"/login", 
 						"/users/register"
 				)
-				.hasAnyAuthority("ANONYMOUS",PasswordsDefaults.TEMP_TOKEN)
+				.permitAll()
 				.antMatchers(
-						"/users/**"
+						"/users/update",
+						"/users/reset/**",
+						"/users/delete"
 				)
 				.hasAnyAuthority("PLAYER", "ADMIN")
 				.antMatchers(
