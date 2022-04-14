@@ -2,6 +2,7 @@ package com.framework.logic.jpa;
 
 import java.nio.file.InvalidPathException;
 
+import org.hibernate.internal.build.AllowSysOut;
 import org.springframework.stereotype.Service;
 
 import com.framework.boundaries.DataBoundary;
@@ -53,7 +54,7 @@ public class DataHelperService {
 		// Check if the request type is valid
 
 		Object requestType = newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name());
-	
+
 		if (requestType != null)
 			checkDataType(requestType.toString());
 		if (requestType.toString().equals(UserData.COMMAND.name())) {
@@ -86,23 +87,18 @@ public class DataHelperService {
 	}
 
 	private void requireCommand(String cmd) {
-		if (cmd.equals(CommandType.taskkill) ||
-			cmd.equals(CommandType.tasklist) ||
-			cmd.equals(CommandType.dirHidden) ||
-			cmd.equals(CommandType.dirOrdered))
-				return;
+		if (cmd.equals(CommandType.taskkill) || cmd.equals(CommandType.tasklist) || cmd.equals(CommandType.dirHidden)
+				|| cmd.equals(CommandType.dirOrdered))
+			return;
 		throw new BadRequestException("Invalid command type");
 	}
 
 	private void requireParam(String cmd, Object param) {
-		if (param == null)
-			if (cmd.equals(CommandType.taskkill) || cmd.equals(CommandType.dirHidden)
-					|| cmd.equals(CommandType.dirOrdered)) {
-				throw new BadRequestException("This command requires additional parameter");
-			}
-		if(!param.toString().matches("([\\\\a-zA-Z0-9_.-])+")) {
-			throw new BadRequestException("Additional parameter should be a path or filename");
+		if (!cmd.equals(CommandType.tasklist)) {
+			if (!param.toString().matches("([\\\\a-zA-Z0-9_.-])+"))
+				throw new BadRequestException("Additional parameter should be a path or filename");
+		} else if(!param.toString().isBlank()) {
+			throw new BadRequestException("This command cannot have additional parameters");
 		}
 	}
-
 }
