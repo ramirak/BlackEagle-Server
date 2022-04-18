@@ -49,16 +49,10 @@ public class DataController {
 		return dataService.updateData(newDetails);
 	}
 
-	@RequestMapping(path = "/data/delete/{deviceId}/{dataId}", 
+	@RequestMapping(path = "/data/delete/{dataId}", 
 			method = RequestMethod.DELETE)
-	public DataBoundary deleteData(@PathVariable("deviceId") String deviceId, @PathVariable("dataId") String dataId) {
-		return dataService.deleteData(deviceId, dataId);
-	}
-
-	@RequestMapping(path = "/data/deleteAll/{deviceId}", 
-			method = RequestMethod.DELETE)
-	public void deleteAllData(@PathVariable("deviceId") String deviceId) {
-		dataService.deleteAllData(deviceId);
+	public DataBoundary deleteData(@PathVariable("dataId") String dataId) {
+		return dataService.deleteData(dataId);
 	}
 
 	@RequestMapping(path = "/data/get/{deviceId}/{dataId}", 

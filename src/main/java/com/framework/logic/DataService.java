@@ -15,10 +15,8 @@ public interface DataService {
 
 	public DataBoundary updateData(DataBoundary update);
 	
-	public DataBoundary deleteData(String deviceId, String dataId);
-	
-	public void deleteAllData(String deviceId); 
-	
+	public DataBoundary deleteData(String dataId);
+		
 	public DataBoundary getSpecificData(String deviceId, String dataId);
 	
 	public List<DataBoundary> getAllData(String deviceId,UserData type, int page, int size);

@@ -1,8 +1,5 @@
 package com.framework.logic.jpa;
 
-import java.nio.file.InvalidPathException;
-
-import org.hibernate.internal.build.AllowSysOut;
 import org.springframework.stereotype.Service;
 
 import com.framework.boundaries.DataBoundary;

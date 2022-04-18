@@ -15,20 +15,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.framework.boundaries.DataBoundary;
-import com.framework.constants.ConfigType;
 import com.framework.constants.DataKeyValue;
-import com.framework.constants.FilterType;
 import com.framework.constants.ServerDefaults;
 import com.framework.constants.UserData;
-import com.framework.constants.UserRole;
 import com.framework.data.DataEntity;
 import com.framework.data.UserEntity;
 import com.framework.data.dao.DataDao;
 import com.framework.data.dao.UserDao;
 import com.framework.exceptions.AlreadyExistingException;
-import com.framework.exceptions.BadRequestException;
 import com.framework.exceptions.NotFoundException;
-import com.framework.exceptions.UnauthorizedRequest;
 import com.framework.logic.DataService;
 import com.framework.logic.converters.DataEntityConverterImplementation;
 import com.framework.logic.converters.JsonConverter;
@@ -46,7 +41,7 @@ public class DataServiceJpa implements DataService {
 	private SessionAttributes session;
 	private UserFiles userFiles;
 	private DataHelperService dhs;
-	
+
 	public DataServiceJpa() {
 	}
 
@@ -89,6 +84,7 @@ public class DataServiceJpa implements DataService {
 	public void setDhs(DataHelperService dhs) {
 		this.dhs = dhs;
 	}
+
 	@Override
 	@Transactional
 	public DataBoundary addData(String ownerId, DataBoundary newData) { // Each user can upload boundaries to himself or
@@ -99,8 +95,8 @@ public class DataServiceJpa implements DataService {
 		validations.assertNull(newData.getDataAttributes());
 		dhs.checkDataType(newData.getDataType().name());
 
-		dhs.allowedTypes(newData, new UserData[] {UserData.REQUEST, UserData.CONFIGURATION});
-		
+		dhs.allowedTypes(newData, new UserData[] { UserData.REQUEST, UserData.CONFIGURATION });
+
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
 		UserEntity existingOwner = userDao.findById(ownerId)
 				.orElseThrow(() -> new NotFoundException("User not found: " + ownerId));
@@ -110,14 +106,16 @@ public class DataServiceJpa implements DataService {
 
 		String newUID = UUID.randomUUID().toString();
 
+		// TODO: Add configuration is redundant since we add it on device creation..
 		if (newData.getDataType() == UserData.REQUEST) {
 			dhs.checkRequest(existingOwner, newData);
-			newUID = "REQUEST_" + newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name()).toString() + "@" + ownerId;
+			newUID = "REQUEST_" + newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name()).toString() + "@"
+					+ ownerId;
 		} else if (newData.getDataType() == UserData.CONFIGURATION) {
 			dhs.checkConfig(existingOwner, newData);
 			newUID = newData.getDataType().name() + "@" + ownerId;
-		} 
-		
+		}
+
 		Optional<DataEntity> existingDataOptional = dataDao.findById(newUID);
 		if (existingDataOptional.isPresent())
 			throw new AlreadyExistingException();
@@ -141,9 +139,9 @@ public class DataServiceJpa implements DataService {
 		validations.assertNull(newData);
 		validations.assertNull(newData.getDataType());
 		dhs.checkDataType(newData.getDataType().name());
-		
-		dhs.notAllowedTypes(newData, new UserData[] {UserData.REQUEST, UserData.CONFIGURATION, UserData.NOTIFCATION});
-		
+
+		dhs.notAllowedTypes(newData, new UserData[] { UserData.REQUEST, UserData.CONFIGURATION, UserData.NOTIFCATION });
+
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
 		UserEntity existingOwner = userDao.findById(authenticatedUser)
 				.orElseThrow(() -> new NotFoundException("User not found"));
@@ -193,13 +191,17 @@ public class DataServiceJpa implements DataService {
 		Optional<DataEntity> existingData = dataDao.findById(update.getDataId());
 		if (existingData.isPresent()) {
 			DataEntity dataEntity = existingData.get();
-			validations.assertOwnership(authenticatedUser, dataEntity.getDataOwner().getDeviceOwner().getId());
+			if (dataEntity.getDataOwner().getRole().equals("DEVICE"))
+				validations.assertOwnership(authenticatedUser, dataEntity.getDataOwner().getDeviceOwner().getId());
+			else
+				validations.assertOwnership(authenticatedUser, dataEntity.getDataOwner().getId());
+
 			if (update.getDataAttributes() != null) {
+				if(update.getDataType() == UserData.CONFIGURATION) 
+					dhs.checkConfig(dataEntity.getDataOwner(), update);
 				dataEntity.setDataAttributes(jsConverter.mapToJSON(update.getDataAttributes()));
 			}
-			if (update.getDataType() != null) {
-				dataEntity.setDataType(update.getDataType().name());
-			}
+			
 			dataEntity = this.dataDao.save(dataEntity);
 			return this.deConverter.toBoundary(dataEntity);
 		} else {
@@ -209,34 +211,23 @@ public class DataServiceJpa implements DataService {
 
 	@Override
 	@Transactional
-	public DataBoundary deleteData(String deviceId, String dataId) {
-		validations.assertNull(deviceId);
+	public DataBoundary deleteData(String dataId) {
 		validations.assertNull(dataId);
 
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
-		UserEntity existingDevice = userDao.findById(deviceId)
-				.orElseThrow(() -> new NotFoundException("Device not found: " + deviceId));
-
-		validations.assertOwnership(existingDevice.getDeviceOwner().getId(), authenticatedUser);
 
 		Optional<DataEntity> existingData = this.dataDao.findById(dataId);
 		if (!existingData.isPresent())
 			throw new NotFoundException("Could not find data by id " + dataId);
+		
 		DataEntity dataEntity = existingData.get();
+		if (dataEntity.getDataOwner().getRole().equals("DEVICE"))
+			validations.assertOwnership(authenticatedUser, dataEntity.getDataOwner().getDeviceOwner().getId());
+		else
+			validations.assertOwnership(authenticatedUser, dataEntity.getDataOwner().getId());
+
 		this.dataDao.delete(dataEntity);
 		return deConverter.toBoundary(dataEntity);
-	}
-
-	@Override
-	@Transactional
-	public void deleteAllData(String deviceId) {
-		validations.assertNull(deviceId);
-
-		String authenticatedUser = session.retrieveAuthenticatedUsername();
-		UserEntity existingDevice = userDao.findById(deviceId)
-				.orElseThrow(() -> new NotFoundException("Device not found: " + deviceId));
-		validations.assertOwnership(existingDevice.getDeviceOwner().getId(), authenticatedUser);
-		this.dataDao.deleteAll();
 	}
 
 	@Override
@@ -264,10 +255,7 @@ public class DataServiceJpa implements DataService {
 				&& db.getDataAttributes().get(DataKeyValue.ATTACHMENT.name()) == Boolean.TRUE) {
 			String path = ServerDefaults.SERVER_USER_DATA_PATH + "/" + de.getDataOwner().getId() + "/";
 			byte[] fileData = this.userFiles.getUploadedFile(path, dataId, true, true); // Decrypted + Base64 Encoded
-			db.getDataAttributes().put(DataKeyValue.DATA.name(), new String(fileData, StandardCharsets.UTF_8)); // Bytes
-																												// as
-																												// ascii
-																												// string
+			db.getDataAttributes().put(DataKeyValue.DATA.name(), new String(fileData, StandardCharsets.UTF_8)); // Bytes as ascii string
 		}
 		return db;
 	}

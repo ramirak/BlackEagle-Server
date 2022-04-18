@@ -1,5 +1,7 @@
 package com.framework.logic.jpa;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -8,6 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
@@ -52,7 +55,7 @@ public class DeviceServiceJpa implements DeviceService {
 	private Validations utils;
 	private SessionAttributes session;
 	private PasswordUtils passUtils;
-	
+
 	public DeviceServiceJpa() {
 	}
 
@@ -65,7 +68,7 @@ public class DeviceServiceJpa implements DeviceService {
 	public void setPasswordDao(PasswordDao passwordDao) {
 		this.passwordDao = passwordDao;
 	}
-	
+
 	@Autowired
 	public void setDataDao(DataDao dataDao) {
 		this.dataDao = dataDao;
@@ -80,7 +83,7 @@ public class DeviceServiceJpa implements DeviceService {
 	public void setPeConverter(PasswordEntityConverterImlementation peConverter) {
 		this.peConverter = peConverter;
 	}
-	
+
 	@Autowired
 	public void setDeConverter(DataEntityConverterImplementation deConverter) {
 		this.deConverter = deConverter;
@@ -105,7 +108,7 @@ public class DeviceServiceJpa implements DeviceService {
 	public void setPassUtils(PasswordUtils passUtils) {
 		this.passUtils = passUtils;
 	}
-	
+
 	@Override
 	public UserBoundary addDevice(UserBoundary device) {
 		utils.assertNull(device);
@@ -134,7 +137,7 @@ public class DeviceServiceJpa implements DeviceService {
 		String newKey = passUtils.generatePassword();
 		passBoundary.setPassword(passwordEncoder.encode(newKey));
 		device.setUserId(new UserIdBoundary(newUID, passBoundary));
-			
+
 		DataBoundary dataBoundary = new DataBoundary();
 		dataBoundary.setDataId(UserData.CONFIGURATION.name() + "@" + newUID);
 		dataBoundary.setDataType(UserData.CONFIGURATION);
@@ -149,7 +152,7 @@ public class DeviceServiceJpa implements DeviceService {
 		UserEntity deviceEntity = this.ueConverter.fromBoundary(device);
 		PasswordEntity passEntity = this.peConverter.fromBoundary(passBoundary);
 		DataEntity dataEntity = this.deConverter.fromBoundary(dataBoundary);
-		
+
 		existingUser.addDeviceToUser(deviceEntity);
 		deviceEntity.addPassword(passEntity);
 		deviceEntity.addDataToUser(dataEntity);
@@ -190,6 +193,8 @@ public class DeviceServiceJpa implements DeviceService {
 
 	@Override
 	public UserBoundary deleteDevice(String deviceId) {
+		utils.assertNull(deviceId);
+
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
 
 		Optional<UserEntity> existingDevice = this.userDao.findById(deviceId);
@@ -200,11 +205,14 @@ public class DeviceServiceJpa implements DeviceService {
 		UserEntity deviceOwner = deviceEntity.getDeviceOwner();
 		utils.assertOwnership(authenticatedUser, deviceOwner.getId());
 
-		// TODO: delete data
-		// --------------------------------------------------------------------------------
+		try {
+			FileUtils.deleteDirectory(new File(ServerDefaults.SERVER_USER_DATA_PATH + "/" + deviceId));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 		deviceOwner.setDeviceCount(deviceOwner.getDeviceCount() - 1);
 		this.userDao.delete(deviceEntity);
-
 		return ueConverter.toBoundary(deviceEntity);
 	}
 

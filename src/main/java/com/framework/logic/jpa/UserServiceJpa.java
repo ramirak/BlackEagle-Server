@@ -215,7 +215,7 @@ public class UserServiceJpa implements UserService {
 		Optional<UserEntity> existingUser = userDao.findById(authenticatedUser);
 		if (!existingUser.isPresent())
 			throw new NotFoundException("User does not exists in the database");
-
+		
 		try {
 			// Compare user input to the generated OTP value and delete if equals.
 			if (otpService.getOTP(authenticatedUser).equals(oneTimeKey)) {

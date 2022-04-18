@@ -4,8 +4,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.framework.constants.FilterType;
-import com.framework.constants.UserData;
 import com.framework.exceptions.BadRequestException;
 import com.framework.exceptions.UnauthorizedRequest;
 
