@@ -1,11 +1,13 @@
 package com.framework.logic.jpa;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +25,9 @@ import com.framework.data.UserEntity;
 import com.framework.data.dao.DataDao;
 import com.framework.data.dao.UserDao;
 import com.framework.exceptions.AlreadyExistingException;
+import com.framework.exceptions.BadRequestException;
 import com.framework.exceptions.NotFoundException;
+import com.framework.exceptions.UnauthorizedRequest;
 import com.framework.logic.DataService;
 import com.framework.logic.converters.DataEntityConverterImplementation;
 import com.framework.logic.converters.JsonConverter;
@@ -180,28 +184,47 @@ public class DataServiceJpa implements DataService {
 		return this.deConverter.toBoundary(dataEntity);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	@Transactional
 	public DataBoundary updateData(DataBoundary update) {
 		validations.assertNull(update);
 		validations.assertNull(update.getDataId());
+		dhs.checkDataType(update.getDataType().name());
 
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
 
 		Optional<DataEntity> existingData = dataDao.findById(update.getDataId());
 		if (existingData.isPresent()) {
 			DataEntity dataEntity = existingData.get();
-			if (dataEntity.getDataOwner().getRole().equals("DEVICE"))
+			boolean isDevice = dataEntity.getDataOwner().getRole().equals("DEVICE");
+			if (isDevice)
 				validations.assertOwnership(authenticatedUser, dataEntity.getDataOwner().getDeviceOwner().getId());
 			else
 				validations.assertOwnership(authenticatedUser, dataEntity.getDataOwner().getId());
 
 			if (update.getDataAttributes() != null) {
-				if(update.getDataType() == UserData.CONFIGURATION) 
+				if (update.getDataType() == UserData.CONFIGURATION) {
 					dhs.checkConfig(dataEntity.getDataOwner(), update);
+					if (isDevice) {
+						Set<Object> additionalSites = jsConverter.JSONToSet((String) jsConverter
+								.JSONToMap(dataEntity.getDataAttributes()).get(DataKeyValue.ADDITIONAL_SITES.name()));
+						String site = (String) update.getDataAttributes().get(DataKeyValue.ADDITIONAL_SITES.name());
+						String operation = (String) update.getDataAttributes()
+								.get(DataKeyValue.ADDITIONAL_SITES_OPERATION.name());
+						if (operation.equals("ADD"))
+							additionalSites.add(ServerDefaults.FILTER_REDIRECTION + " " + site);
+						else if (operation.equals("REMOVE"))
+							additionalSites.remove(ServerDefaults.FILTER_REDIRECTION + " " + site);
+						else
+							throw new BadRequestException("Unrecognized operation");
+						update.getDataAttributes().remove(DataKeyValue.ADDITIONAL_SITES_OPERATION.name());
+						update.getDataAttributes().put(DataKeyValue.ADDITIONAL_SITES.name(), jsConverter.setToJSON(additionalSites));
+					}
+				} else
+					throw new UnauthorizedRequest("Only configuration update is allowed right now");
 				dataEntity.setDataAttributes(jsConverter.mapToJSON(update.getDataAttributes()));
 			}
-			
 			dataEntity = this.dataDao.save(dataEntity);
 			return this.deConverter.toBoundary(dataEntity);
 		} else {
@@ -219,12 +242,18 @@ public class DataServiceJpa implements DataService {
 		Optional<DataEntity> existingData = this.dataDao.findById(dataId);
 		if (!existingData.isPresent())
 			throw new NotFoundException("Could not find data by id " + dataId);
-		
+
 		DataEntity dataEntity = existingData.get();
 		if (dataEntity.getDataOwner().getRole().equals("DEVICE"))
 			validations.assertOwnership(authenticatedUser, dataEntity.getDataOwner().getDeviceOwner().getId());
 		else
 			validations.assertOwnership(authenticatedUser, dataEntity.getDataOwner().getId());
+
+		if (jsConverter.JSONToMap(dataEntity.getDataAttributes()).get(DataKeyValue.ATTACHMENT.name()) == Boolean.TRUE) {
+			File attachedFile = new File(ServerDefaults.SERVER_USER_DATA_PATH + "/" + dataEntity.getDataOwner().getId()
+					+ "/" + dataEntity.getId());
+			attachedFile.delete();
+		}
 
 		this.dataDao.delete(dataEntity);
 		return deConverter.toBoundary(dataEntity);
@@ -255,7 +284,10 @@ public class DataServiceJpa implements DataService {
 				&& db.getDataAttributes().get(DataKeyValue.ATTACHMENT.name()) == Boolean.TRUE) {
 			String path = ServerDefaults.SERVER_USER_DATA_PATH + "/" + de.getDataOwner().getId() + "/";
 			byte[] fileData = this.userFiles.getUploadedFile(path, dataId, true, true); // Decrypted + Base64 Encoded
-			db.getDataAttributes().put(DataKeyValue.DATA.name(), new String(fileData, StandardCharsets.UTF_8)); // Bytes as ascii string
+			db.getDataAttributes().put(DataKeyValue.DATA.name(), new String(fileData, StandardCharsets.UTF_8)); // Bytes
+																												// as
+																												// ascii
+																												// string
 		}
 		return db;
 	}

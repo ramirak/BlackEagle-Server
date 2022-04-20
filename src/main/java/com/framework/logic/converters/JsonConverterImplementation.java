@@ -1,6 +1,7 @@
 package com.framework.logic.converters;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,25 @@ public class JsonConverterImplementation implements JsonConverter {
 	public Map<String, Object> JSONToMap(String json) {
 		try {
 			return this.jackson.readValue(json, Map.class);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public String setToJSON(Set<Object> value) {
+		try {
+			return this.jackson.writeValueAsString(value);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Set<Object> JSONToSet(String json) {
+		try {
+			return this.jackson.readValue(json, Set.class);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

@@ -19,5 +19,6 @@ public interface ServerDefaults extends ServerTime{
 	public final String 
 	DEFAULT_ENCRYPTION_METHOD = "AES/CBC/PKCS5Padding",
 	SERVER_EMAIL = "blackeagle-services@outlook.com",
-	SERVER_USER_DATA_PATH = "data/users";
+	SERVER_USER_DATA_PATH = "data/users",
+	FILTER_REDIRECTION = "0.0.0.0";
 }

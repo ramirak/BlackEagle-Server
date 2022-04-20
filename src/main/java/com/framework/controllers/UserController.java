@@ -35,8 +35,8 @@ public class UserController {
 		return userService.resetPassword(email, oneTimeKey);
 	}
 
-	@RequestMapping(path = "/users/delete", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public UserBoundary deleteAccount(@RequestBody String oneTimeKey) {
+	@RequestMapping(path = "/users/delete/{oneTimeKey}", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public UserBoundary deleteAccount(@PathVariable("oneTimeKey") String oneTimeKey) {
 		return userService.deleteAccount(oneTimeKey);
 	}
 

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,6 +23,7 @@ import com.framework.boundaries.DataBoundary;
 import com.framework.boundaries.PasswordBoundary;
 import com.framework.boundaries.UserBoundary;
 import com.framework.boundaries.UserIdBoundary;
+import com.framework.constants.DataKeyValue;
 import com.framework.constants.FilterType;
 import com.framework.constants.ServerDefaults;
 import com.framework.constants.UserData;
@@ -37,6 +39,7 @@ import com.framework.exceptions.LimitExceededException;
 import com.framework.exceptions.NotFoundException;
 import com.framework.logic.DeviceService;
 import com.framework.logic.converters.DataEntityConverterImplementation;
+import com.framework.logic.converters.JsonConverterImplementation;
 import com.framework.logic.converters.PasswordEntityConverterImlementation;
 import com.framework.logic.converters.UserEntityConverterImplementation;
 import com.framework.security.services.PasswordUtils;
@@ -51,6 +54,7 @@ public class DeviceServiceJpa implements DeviceService {
 	private UserEntityConverterImplementation ueConverter;
 	private PasswordEntityConverterImlementation peConverter;
 	private DataEntityConverterImplementation deConverter;
+	private JsonConverterImplementation jsConverter;
 	private PasswordEncoder passwordEncoder;
 	private Validations utils;
 	private SessionAttributes session;
@@ -87,6 +91,11 @@ public class DeviceServiceJpa implements DeviceService {
 	@Autowired
 	public void setDeConverter(DataEntityConverterImplementation deConverter) {
 		this.deConverter = deConverter;
+	}
+	
+	@Autowired
+	public void setJsConverter(JsonConverterImplementation jsConverter) {
+		this.jsConverter = jsConverter;
 	}
 
 	@Autowired
@@ -147,6 +156,7 @@ public class DeviceServiceJpa implements DeviceService {
 		attributes.put(FilterType.GAMBLING.name(), "false");
 		attributes.put(FilterType.PORN.name(), "false");
 		attributes.put(FilterType.SOCIAL.name(), "false");
+		attributes.put(DataKeyValue.ADDITIONAL_SITES.name(), jsConverter.setToJSON(new HashSet<Object>()));
 		dataBoundary.setDataAttributes(attributes);
 
 		UserEntity deviceEntity = this.ueConverter.fromBoundary(device);

@@ -61,7 +61,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 				.antMatchers(
 						"/users/update",
 						"/users/reset/**",
-						"/users/delete"
+						"/users/delete/**"
 				)
 				.hasAnyAuthority("PLAYER", "ADMIN")
 				.antMatchers(

@@ -1,10 +1,13 @@
 package com.framework.logic.jpa;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -17,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.framework.boundaries.PasswordBoundary;
 import com.framework.boundaries.UserBoundary;
 import com.framework.constants.EventType;
+import com.framework.constants.ServerDefaults;
 import com.framework.constants.UserRole;
 import com.framework.data.PasswordEntity;
 import com.framework.data.UserEntity;
@@ -219,9 +223,13 @@ public class UserServiceJpa implements UserService {
 		try {
 			// Compare user input to the generated OTP value and delete if equals.
 			if (otpService.getOTP(authenticatedUser).equals(oneTimeKey)) {
-				// TODO delete from dataDao
-				// TODO delete owned devices
-				passwordDao.deleteById(authenticatedUser);
+				for (UserEntity device : existingUser.get().getDevices()) {	
+					try {
+						FileUtils.deleteDirectory(new File(ServerDefaults.SERVER_USER_DATA_PATH + "/" + device.getId()));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
 				userDao.deleteById(authenticatedUser);
 			} else
 				throw new UnauthorizedRequest("One time key does not match user's input");
