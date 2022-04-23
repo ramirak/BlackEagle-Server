@@ -27,9 +27,7 @@ public class PasswordEntity implements Serializable, Comparable<PasswordEntity> 
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date creationTime;
 	private boolean active;
-	private String hint;
-
-
+	
 	@ManyToOne
 	@JoinColumn(name = "pass_owner")
 	private UserEntity passOwner;
@@ -74,17 +72,9 @@ public class PasswordEntity implements Serializable, Comparable<PasswordEntity> 
 		this.active = active;
 	}
 
-	public String getHint() {
-		return hint;
-	}
-
-	public void setHint(String hint) {
-		this.hint = hint;
-	}
-
 	@Override
 	public int hashCode() {
-		return Objects.hash(active, creationTime, hint, id, passOwner, password);
+		return Objects.hash(active, creationTime, id, passOwner, password);
 	}
 
 	@Override
@@ -97,15 +87,12 @@ public class PasswordEntity implements Serializable, Comparable<PasswordEntity> 
 			return false;
 		PasswordEntity other = (PasswordEntity) obj;
 		return active == other.active && Objects.equals(creationTime, other.creationTime)
-				&& Objects.equals(hint, other.hint) && id == other.id && Objects.equals(passOwner, other.passOwner)
+				&& id == other.id && Objects.equals(passOwner, other.passOwner)
 				&& Objects.equals(password, other.password);
 	}
 
 	@Override
 	public int compareTo(PasswordEntity o) {
-	//	if(o.getCreationTime() == null) // TODO: check why null
-		//	return -1;
-	
 		return this.creationTime.compareTo(o.creationTime);
 	}
 

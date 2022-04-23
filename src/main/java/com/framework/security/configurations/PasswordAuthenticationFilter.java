@@ -16,13 +16,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.framework.boundaries.UserLoginDetails;
 import com.framework.constants.EventType;
+import com.framework.constants.UserRole;
 import com.framework.logic.jpa.EventServiceJpa;
 
-public class CustomUsernamePasswordAuthFilter extends UsernamePasswordAuthenticationFilter  {
+public class PasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter  {
 	private AuthenticationManager authManager;
 	private EventServiceJpa eventJpa;
 
-	public CustomUsernamePasswordAuthFilter(AuthenticationManager authManager, EventServiceJpa eventJpa) {
+	public PasswordAuthenticationFilter(AuthenticationManager authManager, EventServiceJpa eventJpa) {
 		super();
 		this.authManager = authManager;
 		this.eventJpa = eventJpa;
@@ -35,7 +36,6 @@ public class CustomUsernamePasswordAuthFilter extends UsernamePasswordAuthentica
 			// Get username & password from request (JSON) any way you like
 			UserLoginDetails authRequest = new ObjectMapper().readValue(request.getInputStream(),
 					UserLoginDetails.class);
-			// TODO :test for null values
 			Authentication auth = new UsernamePasswordAuthenticationToken(authRequest.getUid(),
 					authRequest.getPassword());
 			return authManager.authenticate(auth);
@@ -49,13 +49,8 @@ public class CustomUsernamePasswordAuthFilter extends UsernamePasswordAuthentica
 			Authentication authResult) throws IOException, ServletException {
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 		securityContext.setAuthentication(authResult);
-		if (authResult.getAuthorities().contains(new SimpleGrantedAuthority("PLAYER"))) // Log only events for basic users
+		if (authResult.getAuthorities().contains(new SimpleGrantedAuthority(UserRole.PLAYER.name()))) // Log only events for basic users
 			eventJpa.createEvent(authResult.getName(), EventType.NEW_LOGIN);
-		/*
-		 * // Create a new session and add the security context. HttpSession session =
-		 * request.getSession(true); session.setAttribute("SPRING_SECURITY_CONTEXT",
-		 * securityContext);
-		 */
 	}
 	
 }

@@ -6,7 +6,6 @@ public class PasswordBoundary {
 	private String password, optionalPassword;
 	private Date creationTime;
 	private Boolean active;
-	private String hint;
 	
 	public PasswordBoundary() {
 	}
@@ -33,14 +32,6 @@ public class PasswordBoundary {
 
 	public void setActive(Boolean active) {
 		this.active = active;
-	}
-
-	public String getHint() {
-		return hint;
-	}
-
-	public void setHint(String hint) {
-		this.hint = hint;
 	}
 
 	public String getOptionalPassword() {

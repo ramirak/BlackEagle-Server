@@ -25,7 +25,6 @@ public class DenialOfServiceFilter extends OncePerRequestFilter {
 
 		ddosProtectionService.consumeBucket();
 		filterChain.doFilter(request, response);
-
 	}
 
 }

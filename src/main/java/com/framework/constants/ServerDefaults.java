@@ -7,12 +7,15 @@ public interface ServerDefaults extends ServerTime{
 	KEEP_REPORTS_FOR = 1 * month,
 	ACCOUNT_LOCKDOWN = 3 * minute,
 	OTP_EXPIRED_IN = 2 * minute,
-	MAX_CONCURRENT_SESSIONS = 4,
-	MAX_STORAGE_PER_USER = 2,
 	MAX_NUM_DEVICES = 5,
 	MAX_CACHE_SIZE = 1000000,
-	MAX_REQUEST_PER_MINUTE = 30;
+	MAX_REQUEST_PER_MINUTE = 30,
 	
+	// Quota management for future development
+	MAX_STORAGE_FREE_ACCOUNT = 500,
+	MAX_STORAGE_PREMUIM_ACCOUNT = 1000,
+	MAX_STORAGE_VIP_ACCOUNT = 2000;
+			
 	public final boolean 
 	FORCE_EMAIL_VERIFICATION = true;
 	

@@ -26,5 +26,6 @@ public interface PasswordsDefaults extends ServerTime {
 	
 	public final String 
 	DICTIONARY_FILE_PATH = "rockyou.dict",
-	TEMP_TOKEN = "PRE_AUTH";
+	TEMP_TOKEN = "PRE_AUTH",
+	RESET_PASSWORD_TOKEN = "RES_AUTH";
 }

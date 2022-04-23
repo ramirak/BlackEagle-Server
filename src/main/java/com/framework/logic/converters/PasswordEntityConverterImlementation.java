@@ -13,7 +13,6 @@ public class PasswordEntityConverterImlementation implements EntityConverter<Pas
 		PasswordBoundary pb = new PasswordBoundary();
 		pb.setActive(entity.getActive());
 		pb.setCreationTime(entity.getCreationTime());
-		pb.setHint(entity.getHint());
 		pb.setPassword(entity.getPassword());
 		return pb;
 	}
@@ -23,7 +22,6 @@ public class PasswordEntityConverterImlementation implements EntityConverter<Pas
 		PasswordEntity pe = new PasswordEntity();
 		pe.setActive(boundary.getActive() != null ? boundary.getActive() : true);
 		pe.setCreationTime(boundary.getCreationTime());
-		pe.setHint(boundary.getHint());
 		pe.setPassword(boundary.getPassword());
 		return pe;
 	}

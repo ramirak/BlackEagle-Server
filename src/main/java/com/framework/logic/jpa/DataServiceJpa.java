@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -20,12 +21,14 @@ import com.framework.boundaries.DataBoundary;
 import com.framework.constants.DataKeyValue;
 import com.framework.constants.ServerDefaults;
 import com.framework.constants.UserData;
+import com.framework.constants.UserRole;
 import com.framework.data.DataEntity;
 import com.framework.data.UserEntity;
 import com.framework.data.dao.DataDao;
 import com.framework.data.dao.UserDao;
 import com.framework.exceptions.AlreadyExistingException;
 import com.framework.exceptions.BadRequestException;
+import com.framework.exceptions.LimitExceededException;
 import com.framework.exceptions.NotFoundException;
 import com.framework.exceptions.UnauthorizedRequest;
 import com.framework.logic.DataService;
@@ -162,9 +165,18 @@ public class DataServiceJpa implements DataService {
 			newData.setDataAttributes(new HashMap<>());
 		newData.getDataAttributes().put(DataKeyValue.ATTACHMENT.name(), Boolean.TRUE);
 		try {
-			long size = file.getSize();
-			userFiles.saveUploadedFile(file, ServerDefaults.SERVER_USER_DATA_PATH + "/" + existingOwner.getId() + "/",
-					newUID, true); // Encrypted
+			long size = file.getSize() / 1048576; // Convert to MB
+			Optional<DataEntity> userConfig = dataDao.findById(UserData.CONFIGURATION.name() + "@" + authenticatedUser);
+			Map<String,Object> configAttr = jsConverter.JSONToMap(userConfig.get().getDataAttributes());
+			long currentQuota = (long) configAttr.get(DataKeyValue.CURRENT_DISK_QUOTA.name());
+			long maxQuota = (long) configAttr.get(DataKeyValue.MAX_DISK_QUOTA.name());
+			currentQuota += size;
+			if(currentQuota > maxQuota)
+				throw new LimitExceededException("User exceeded his account disk quota");
+
+			userFiles.saveUploadedFile(file, ServerDefaults.SERVER_USER_DATA_PATH + "/" + existingOwner.getId() + "/", newUID, true); // Encrypted
+			userConfig.get().setDataAttributes(jsConverter.mapToJSON(configAttr));
+			this.dataDao.save(userConfig.get());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -184,7 +196,6 @@ public class DataServiceJpa implements DataService {
 		return this.deConverter.toBoundary(dataEntity);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	@Transactional
 	public DataBoundary updateData(DataBoundary update) {
@@ -197,7 +208,7 @@ public class DataServiceJpa implements DataService {
 		Optional<DataEntity> existingData = dataDao.findById(update.getDataId());
 		if (existingData.isPresent()) {
 			DataEntity dataEntity = existingData.get();
-			boolean isDevice = dataEntity.getDataOwner().getRole().equals("DEVICE");
+			boolean isDevice = dataEntity.getDataOwner().getRole().equals(UserRole.DEVICE.name());
 			if (isDevice)
 				validations.assertOwnership(authenticatedUser, dataEntity.getDataOwner().getDeviceOwner().getId());
 			else
@@ -244,7 +255,7 @@ public class DataServiceJpa implements DataService {
 			throw new NotFoundException("Could not find data by id " + dataId);
 
 		DataEntity dataEntity = existingData.get();
-		if (dataEntity.getDataOwner().getRole().equals("DEVICE"))
+		if (dataEntity.getDataOwner().getRole().equals(UserRole.DEVICE.name()))
 			validations.assertOwnership(authenticatedUser, dataEntity.getDataOwner().getDeviceOwner().getId());
 		else
 			validations.assertOwnership(authenticatedUser, dataEntity.getDataOwner().getId());
@@ -267,14 +278,13 @@ public class DataServiceJpa implements DataService {
 
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
 
-		if (uid != authenticatedUser) {
+		if (!uid.equals(authenticatedUser)) {
 			Optional<UserEntity> existingDevice = userDao.findById(uid);
 			UserEntity deviceEntity;
 			if (existingDevice.isPresent()) {
 				deviceEntity = existingDevice.get();
 			} else
 				throw new NotFoundException("Device not found: " + uid);
-
 			validations.assertOwnership(authenticatedUser, deviceEntity.getDeviceOwner().getId());
 		}
 		DataEntity de = dataDao.findByDataIdAndDataOwnerUid(dataId, uid);

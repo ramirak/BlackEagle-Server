@@ -2,6 +2,8 @@ package com.framework.security.configurations;
 
 import java.util.concurrent.ExecutionException;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -13,9 +15,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
 import com.framework.constants.PasswordsDefaults;
 import com.framework.exceptions.SessionExpiredException;
-import com.framework.security.services.OTPService;
+import com.framework.security.services.BruteForceProtection;
+import com.framework.security.services.SecondFactorCachingService;
 import com.framework.security.sessions.SessionAttributes;
 
 @Component
@@ -23,7 +29,8 @@ public class SecondAuthenticationProvider implements AuthenticationProvider {
 
 	private UserDetailsService userService;
 	private SessionAttributes session;
-	private OTPService otp;
+	private SecondFactorCachingService otp;
+	private BruteForceProtection bfp;
 
 	@Autowired
 	public void setUserService(UserDetailsService userService) {
@@ -36,32 +43,38 @@ public class SecondAuthenticationProvider implements AuthenticationProvider {
 	}
 
 	@Autowired
-	public void setOtp(OTPService otp) {
+	public void setOtp(SecondFactorCachingService otp) {
 		this.otp = otp;
 	}
-
+	
+	@Autowired
+	public void setBfp(BruteForceProtection bfp) {
+		this.bfp = bfp;
+	}
+	
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 		String username = authentication.getName();
 		String password = (String) authentication.getCredentials();
-		
+		HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes())
+                .getRequest(); 
+
 		UserDetails user;
 		try {
 			user = userService.loadUserByUsername(username);
 		} catch (UsernameNotFoundException e1) {
-			e1.printStackTrace();
-			throw new BadCredentialsException("Incorrect username or password");
+			// Do not reveal if user was not found, show bad credentials..
+			throw new BadCredentialsException("Failed to authenticate");
 		}
 		
 		if (session.getAuthenticationDetails() != null && session.hasRole(PasswordsDefaults.TEMP_TOKEN, session.retrieveAuthorities())) {
 			try {
 				if (otp.hasKey(username)) {
 					if (otp.getOTP(username).equals(password)) {
+						bfp.bfpCheck(request.getRemoteAddr(), username, true);
 						// Fully authenticated, set User roles accordingly..
 						otp.removeOTP(username);
 						return new UsernamePasswordAuthenticationToken(username, password, user.getAuthorities());
-					} else {
-						throw new BadCredentialsException("Incorrect one time key");
 					}
 				} else {
 					// User has PreAuth Token but the OTP has already been expired
@@ -72,7 +85,7 @@ public class SecondAuthenticationProvider implements AuthenticationProvider {
 				e.printStackTrace();
 			}
 		}
-		throw new BadCredentialsException("Incorrect username or password");
+		throw new BadCredentialsException("Failed to authenticate");
 	}
 
 	@Override

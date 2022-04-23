@@ -17,6 +17,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.framework.constants.PasswordsDefaults;
+import com.framework.constants.UserRole;
+import com.framework.data.dao.UserDao;
 import com.framework.logic.jpa.EventServiceJpa;
 import com.framework.security.services.DenialOfServiceProtection;
 
@@ -24,28 +27,39 @@ import com.framework.security.services.DenialOfServiceProtection;
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	private EventServiceJpa eventJpa;
+	private UserDao userDao;
 	private DenialOfServiceProtection ddosProtectionService;
-
+	private final String 
+					PLAYER = UserRole.PLAYER.name(),
+					ADMIN = UserRole.ADMIN.name(),
+					DEVICE = UserRole.DEVICE.name();
 	@Autowired
 	public void setEventJpa(EventServiceJpa eventJpa) {
 		this.eventJpa = eventJpa;
 	}
 
 	@Autowired
+	public void setUserDao(UserDao userDao) {
+		this.userDao = userDao;
+	}
+	
+	@Autowired
 	public void setDdosProtectionService(DenialOfServiceProtection ddosProtectionService) {
 		this.ddosProtectionService = ddosProtectionService;
 	}
 	
 	@Override
-	protected void configure(HttpSecurity http) throws Exception {
+	protected void configure(HttpSecurity http) throws Exception {	
 		http.cors().and().csrf().disable()
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS).and()
-				.addFilter(new CustomUsernamePasswordAuthFilter(authenticationManager(), eventJpa))
-				.addFilterAfter(new DenialOfServiceFilter(ddosProtectionService), CustomUsernamePasswordAuthFilter.class)
+				.addFilter(new PasswordAuthenticationFilter(authenticationManager(), eventJpa))
+				.addFilterAfter(new DenialOfServiceFilter(ddosProtectionService), PasswordAuthenticationFilter.class)
+				.addFilterAfter(new SessionValidationFilter(userDao), DenialOfServiceFilter.class)
 				.authorizeRequests()
 				/**
 				 * ------------------------ RULES SUMMARY ------------------------
 				 * Users with role [PRE_AUTH] can not access [Admin/User/Device/Data] API
+				 * Users with role [RES_AUTH] can change his own password
 				 * Users with role [Player, Device] can not access [Admin] API
 				 * Users with role [Player, Admin] can not upload any file
 				 * Users with role [Device] can not access [User/Device] API
@@ -59,32 +73,35 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 				)
 				.permitAll()
 				.antMatchers(
+						"/resetPassword"
+				).hasAnyAuthority(PasswordsDefaults.RESET_PASSWORD_TOKEN)
+				.antMatchers(
 						"/users/update",
 						"/users/reset/**",
 						"/users/delete/**"
 				)
-				.hasAnyAuthority("PLAYER", "ADMIN")
+				.hasAnyAuthority(PLAYER, ADMIN)
 				.antMatchers(
 						"/device/**",
 						"/data/update/**",
 						"/data/delete/**",
 						"/data/deleteAll/**"
 				)
-				.hasAnyAuthority("PLAYER")
+				.hasAnyAuthority(PLAYER)
 				.antMatchers(
 						"/data/add/**",
 						"/data/get/**",
 						"/data/getAll/**"
 				)
-				.hasAnyAuthority("PLAYER","DEVICE")
+				.hasAnyAuthority(PLAYER, DEVICE)
 				.antMatchers(
 						"/data/upload"
 				)
-				.hasAnyAuthority("DEVICE")
+				.hasAnyAuthority(DEVICE)
 				.antMatchers(
 						"/admins/**"			
 				)
-				.hasAnyAuthority("ADMIN")
+				.hasAnyAuthority(ADMIN)
 				.antMatchers(
 						"/**"			
 				).denyAll() // Deny all access if not matching one of the above rules..
@@ -108,7 +125,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	public void configure(WebSecurity web) {
 		web.ignoring().antMatchers("/resources/**", "/static/**");
 	}
-
+	
 	@Bean
 	public FirstAuthenticationProvider fAuthProvider() {
 		FirstAuthenticationProvider authProvider = new FirstAuthenticationProvider();
@@ -123,6 +140,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	}
 	
 	@Bean
+	public ForgotPasswordAuthenticationProvider foAuthProvider() {
+		ForgotPasswordAuthenticationProvider authProvider = new ForgotPasswordAuthenticationProvider();
+		return authProvider;
+	}
+	
+	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new Pbkdf2PasswordEncoder();
 	}
@@ -131,5 +154,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 		auth.authenticationProvider(fAuthProvider());
 		auth.authenticationProvider(sAuthProvider());
+		auth.authenticationProvider(foAuthProvider());
 	}
 }

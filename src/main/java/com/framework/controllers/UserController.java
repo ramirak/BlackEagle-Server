@@ -7,7 +7,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.framework.boundaries.PasswordBoundary;
 import com.framework.boundaries.UserBoundary;
+import com.framework.boundaries.UserLoginDetails;
 import com.framework.logic.UserService;
 
 @RestController
@@ -29,15 +32,18 @@ public class UserController {
 		return userService.updateUser(newDetails);
 	}
 
-	@RequestMapping(path = "/users/reset/{userEmail}/{oneTimeKey}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public UserBoundary resetPassword(@PathVariable("userEmail") String email,
-			@PathVariable("oneTimeKey") String oneTimeKey) {
-		return userService.resetPassword(email, oneTimeKey);
+	@RequestMapping(path = "/users/checkOtk/{userEmail}/{otkValue}", method = RequestMethod.GET)
+	public void verifyOtk(@PathVariable("userEmail") String email, @PathVariable("otkValue") String otpValue) {
+		userService.sendOtkViaEmail(email);
 	}
-
-	@RequestMapping(path = "/users/delete/{oneTimeKey}", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public UserBoundary deleteAccount(@PathVariable("oneTimeKey") String oneTimeKey) {
-		return userService.deleteAccount(oneTimeKey);
+	
+	@RequestMapping(path = "/users/resetPassword", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public void resetPassword(@RequestBody PasswordBoundary passDetails) {
+		userService.resetPassword(passDetails);
 	}
-
+	
+	@RequestMapping(path = "/users/delete", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public UserBoundary deleteAccount(@RequestBody UserLoginDetails loginDetails) {
+		return userService.deleteAccount(loginDetails);
+	}
 }

@@ -1,6 +1,9 @@
 package com.framework.constants;
 
 public enum DataKeyValue {
+	REGISTERED_ACCOUNT,
+	MAX_DISK_QUOTA,
+	CURRENT_DISK_QUOTA,
 	REQUEST_TYPE,
 	FILTER_TYPE,
 	COMMAND_TYPE,

@@ -12,10 +12,10 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 
 @Service
-public class OTPService {
+public class SecondFactorCachingService {
 	private Cache<String, String> otpCache;
 
-	public OTPService() {
+	public SecondFactorCachingService() {
 		this.otpCache = CacheBuilder.newBuilder()
 				.expireAfterWrite(60, TimeUnit.SECONDS).maximumSize(ServerDefaults.MAX_CACHE_SIZE)
 				.build(new CacheLoader<String, String>() {
@@ -26,7 +26,8 @@ public class OTPService {
 				});
 	}
 
-	public String generateOTP(String uid) {
+	private String generateOTP(String uid) {
+		// Generate short random value with 7 digits (only numbers)
 		SecureRandom rand = new SecureRandom();
 		int otp = 1000000 + rand.nextInt(8999999);
 		return String.valueOf(otp);

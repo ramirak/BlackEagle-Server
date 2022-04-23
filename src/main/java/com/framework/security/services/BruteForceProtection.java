@@ -30,7 +30,7 @@ public class BruteForceProtection {
 		 * Block IP after small number of tries [3] to prevent blocking an attacked
 		 * account (Account DDOS). If the login attempts exceed a higher number of tries
 		 * than max tries per Account [10], the the account should be blocked for the
-		 * possibility of systematic attack ..
+		 * possibility of systemic attack ..
 		 */
 		try {
 			if (getfailedLoginAttempts(ipAddress) > maxAttemptsIP) {
