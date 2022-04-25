@@ -15,18 +15,22 @@ import com.framework.exceptions.UnauthorizedRequest;
 
 @Service
 public class DataHelperService {
+	
+	public int getFileSize(long size) {
+		return (int)(size / 1048576);
+	}
 
-	public void notAllowedTypes(DataBoundary newData, UserData[] types) {
+	public void notAllowedTypes(String type, UserData[] types) {
 		for (int i = 0; i < types.length; i++) {
-			if (newData.getDataType() == types[i])
+			if (type.equals(types[i].name()))
 				throw new BadRequestException("Call to wrong method");
 		}
 		return;
 	}
 
-	public void allowedTypes(DataBoundary newData, UserData[] types) {
+	public void allowedTypes(String type, UserData[] types) {
 		for (int i = 0; i < types.length; i++) {
-			if (newData.getDataType() == types[i])
+			if (type.equals(types[i].name()))
 				return;
 		}
 		throw new BadRequestException("Call to wrong method");

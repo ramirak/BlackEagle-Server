@@ -11,5 +11,6 @@ public enum UserData {
 	SCREENSHOT,
 	LOCATION,
 	LOCKDOWN,
-	COMMAND
+	COMMAND,
+	NETLOG
 }

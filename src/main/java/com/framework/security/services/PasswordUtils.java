@@ -54,6 +54,8 @@ public class PasswordUtils {
 	public boolean checkPassword(String pass) {
 		if (pass.length() < passMinLength)
 			return false;
+		if (pass.length() > passMaxLength)
+			return false;
 		if (PasswordsDefaults.UPPERCASE && !stringHasCharInRange(pass, 'A', 'Z'))
 			return false;
 		if (PasswordsDefaults.LOWERCASE && !stringHasCharInRange(pass, 'a', 'z'))

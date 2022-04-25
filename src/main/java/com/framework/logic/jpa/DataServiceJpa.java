@@ -102,7 +102,7 @@ public class DataServiceJpa implements DataService {
 		validations.assertNull(newData.getDataAttributes());
 		dhs.checkDataType(newData.getDataType().name());
 
-		dhs.allowedTypes(newData, new UserData[] { UserData.REQUEST, UserData.CONFIGURATION });
+		dhs.allowedTypes(newData.getDataType().name(), new UserData[] { UserData.REQUEST, UserData.CONFIGURATION });
 
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
 		UserEntity existingOwner = userDao.findById(ownerId)
@@ -147,7 +147,7 @@ public class DataServiceJpa implements DataService {
 		validations.assertNull(newData.getDataType());
 		dhs.checkDataType(newData.getDataType().name());
 
-		dhs.notAllowedTypes(newData, new UserData[] { UserData.REQUEST, UserData.CONFIGURATION, UserData.NOTIFCATION });
+		dhs.notAllowedTypes(newData.getDataType().name(), new UserData[] { UserData.REQUEST, UserData.CONFIGURATION, UserData.NOTIFCATION });
 
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
 		UserEntity existingOwner = userDao.findById(authenticatedUser)
@@ -164,16 +164,16 @@ public class DataServiceJpa implements DataService {
 		if (newData.getDataAttributes() == null)
 			newData.setDataAttributes(new HashMap<>());
 		newData.getDataAttributes().put(DataKeyValue.ATTACHMENT.name(), Boolean.TRUE);
-		try {
-			long size = file.getSize() / 1048576; // Convert to MB
-			Optional<DataEntity> userConfig = dataDao.findById(UserData.CONFIGURATION.name() + "@" + authenticatedUser);
+		try {	
+			int size = dhs.getFileSize(file.getSize()); // Convert to MB
+			Optional<DataEntity> userConfig = dataDao.findById(UserData.CONFIGURATION.name() + "@" + existingOwner.getDeviceOwner().getId());
 			Map<String,Object> configAttr = jsConverter.JSONToMap(userConfig.get().getDataAttributes());
-			long currentQuota = (long) configAttr.get(DataKeyValue.CURRENT_DISK_QUOTA.name());
-			long maxQuota = (long) configAttr.get(DataKeyValue.MAX_DISK_QUOTA.name());
+			int currentQuota = (Integer) configAttr.get(DataKeyValue.CURRENT_DISK_QUOTA.name());
+			int maxQuota = (Integer) configAttr.get(DataKeyValue.MAX_DISK_QUOTA.name());
 			currentQuota += size;
 			if(currentQuota > maxQuota)
 				throw new LimitExceededException("User exceeded his account disk quota");
-
+			
 			userFiles.saveUploadedFile(file, ServerDefaults.SERVER_USER_DATA_PATH + "/" + existingOwner.getId() + "/", newUID, true); // Encrypted
 			userConfig.get().setDataAttributes(jsConverter.mapToJSON(configAttr));
 			this.dataDao.save(userConfig.get());
@@ -255,6 +255,8 @@ public class DataServiceJpa implements DataService {
 			throw new NotFoundException("Could not find data by id " + dataId);
 
 		DataEntity dataEntity = existingData.get();
+		dhs.notAllowedTypes(dataEntity.getDataType(), new UserData[] {UserData.CONFIGURATION});
+	
 		if (dataEntity.getDataOwner().getRole().equals(UserRole.DEVICE.name()))
 			validations.assertOwnership(authenticatedUser, dataEntity.getDataOwner().getDeviceOwner().getId());
 		else
@@ -270,6 +272,25 @@ public class DataServiceJpa implements DataService {
 		return deConverter.toBoundary(dataEntity);
 	}
 
+	@Override
+	public void deleteAllData(String ownerId, String dataType) {
+		validations.assertNull(ownerId);
+		validations.assertNull(dataType);
+		
+		dhs.checkDataType(dataType);
+		dhs.notAllowedTypes(dataType, new UserData[] {UserData.CONFIGURATION});
+		
+		String authenticatedUser = session.retrieveAuthenticatedUsername();
+		
+		UserEntity existingOwner = userDao.findById(ownerId)
+				.orElseThrow(() -> new NotFoundException("User not found"));
+		
+		if(!authenticatedUser.equals(ownerId))
+			validations.assertOwnership(authenticatedUser, existingOwner.getDeviceOwner().getId());
+		
+		dataDao.deleteAllByDataTypeAndDataOwnerUid(dataType, ownerId);
+	}
+	
 	@Override
 	@Transactional(readOnly = true)
 	public DataBoundary getSpecificData(String uid, String dataId) {

@@ -54,6 +54,12 @@ public class DataController {
 	public DataBoundary deleteData(@PathVariable("dataId") String dataId) {
 		return dataService.deleteData(dataId);
 	}
+	
+	@RequestMapping(path = "/data/deleteAll/{ownerId}/{dataType}", 
+			method = RequestMethod.DELETE)
+	public void deleteAllData(@PathVariable("ownerId") String ownerId, @PathVariable("dataType") String dataType) {
+		dataService.deleteAllData(ownerId, dataType);
+	}
 
 	@RequestMapping(path = "/data/get/{deviceId}/{dataId}", 
 			method = RequestMethod.GET, 

@@ -16,6 +16,8 @@ public interface DataService {
 	public DataBoundary updateData(DataBoundary update);
 	
 	public DataBoundary deleteData(String dataId);
+	
+	public void deleteAllData(String ownerId, String dataType);
 		
 	public DataBoundary getSpecificData(String deviceId, String dataId);
 	
