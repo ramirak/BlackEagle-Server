@@ -154,8 +154,8 @@ public class UserServiceJpa implements UserService {
 		/**
 		 * Basic account details
 		 * **/
-		Optional<UserEntity> exitingUser = userDao.findById(user.getUserId().getUID());
-		if (exitingUser.isPresent())
+		Optional<UserEntity> existingUser = userDao.findById(user.getUserId().getUID());
+		if (existingUser.isPresent())
 			throw new AlreadyExistingException("uid already in the database");
 		user.getUserId().getPasswordBoundary().setCreationTime(new Date());	
 		user.setRole(UserRole.PLAYER);
@@ -183,8 +183,8 @@ public class UserServiceJpa implements UserService {
 		configurationBoundary.setCreatedTimestamp(new Date());
 		Map<String, Object> attributes = new HashMap<>();
 		attributes.put(DataKeyValue.REGISTERED_ACCOUNT.name(), RegisteredAccount.FREE_ACCOUNT.name());
-		attributes.put(DataKeyValue.MAX_DISK_QUOTA.name(), ServerDefaults.MAX_STORAGE_FREE_ACCOUNT);
-		attributes.put(DataKeyValue.CURRENT_DISK_QUOTA.name(), 0);
+		attributes.put(DataKeyValue.MAX_DISK_QUOTA.name(), Integer.toString(ServerDefaults.MAX_STORAGE_FREE_ACCOUNT));
+		attributes.put(DataKeyValue.CURRENT_DISK_QUOTA.name(), "0");
 		configurationBoundary.setDataAttributes(attributes);
 		
 		/**

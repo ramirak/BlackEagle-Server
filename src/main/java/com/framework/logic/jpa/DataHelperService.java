@@ -16,8 +16,8 @@ import com.framework.exceptions.UnauthorizedRequest;
 @Service
 public class DataHelperService {
 	
-	public int getFileSize(long size) {
-		return (int)(size / 1048576);
+	public Double getFileSize(long size) {
+		return ((double) size / 1048576);
 	}
 
 	public void notAllowedTypes(String type, UserData[] types) {
