@@ -223,16 +223,24 @@ public class DeviceServiceJpa implements DeviceService {
 		UserEntity deviceOwner = deviceEntity.getDeviceOwner();
 		utils.assertOwnership(authenticatedUser, deviceOwner.getId());
 
+		// Sum up all the sizes
+		double sizeSum = dataDao.findAllByOwnerUid(deviceId).stream()
+				.mapToDouble(data -> Double.parseDouble(
+						(String) jsConverter.JSONToMap(data.getDataAttributes()).get(DataKeyValue.FILE_SIZE.name()))).sum();
 		try {
 			FileUtils.deleteDirectory(new File(ServerDefaults.SERVER_USER_DATA_PATH + "/" + deviceId));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+		
 		Optional<DataEntity> userConfig = dataDao.findById(UserData.CONFIGURATION.name() + "@" + deviceOwner.getId());
 		Map<String, Object> configAttr = jsConverter.JSONToMap(userConfig.get().getDataAttributes());
 		int currentNumDevices = (Integer) configAttr.get(DataKeyValue.CURRENT_NUM_DEVICES.name()) - 1 ;
-
+		double currentQuota = Double.parseDouble((String) configAttr.get(DataKeyValue.CURRENT_DISK_QUOTA.name()));
+		currentQuota -= sizeSum;
+		if (currentQuota < 0)
+			currentQuota = 0;
+		configAttr.put(DataKeyValue.CURRENT_DISK_QUOTA.name(), Double.toString(currentQuota));		
 		configAttr.put(DataKeyValue.CURRENT_NUM_DEVICES.name(), currentNumDevices);
 		userConfig.get().setDataAttributes(jsConverter.mapToJSON(configAttr));
 		

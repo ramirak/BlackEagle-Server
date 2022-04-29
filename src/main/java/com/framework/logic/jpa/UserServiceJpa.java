@@ -331,7 +331,6 @@ public class UserServiceJpa implements UserService {
 			}
 		}
 		userDao.deleteById(authenticatedUser);
-
 		return ueConverter.toBoundary(existingUser.get());
 	}
 
