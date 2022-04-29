@@ -92,7 +92,7 @@ public class DeviceServiceJpa implements DeviceService {
 	public void setDeConverter(DataEntityConverterImplementation deConverter) {
 		this.deConverter = deConverter;
 	}
-	
+
 	@Autowired
 	public void setJsConverter(JsonConverterImplementation jsConverter) {
 		this.jsConverter = jsConverter;
@@ -124,10 +124,17 @@ public class DeviceServiceJpa implements DeviceService {
 		utils.assertNull(device.getName());
 
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
-
 		UserEntity existingUser = userDao.findById(authenticatedUser).get();
+		
+		Optional<DataEntity> userConfig = dataDao.findById(UserData.CONFIGURATION.name() + "@" + existingUser.getId());
+		Map<String, Object> configAttr = jsConverter.JSONToMap(userConfig.get().getDataAttributes());
+		int maxDevices = (Integer) configAttr.get(DataKeyValue.MAX_ALLOWED_DEVICES.name());
+		int currentNumDevices = (Integer) configAttr.get(DataKeyValue.CURRENT_NUM_DEVICES.name()) + 1;
 
-		if (existingUser.getDeviceCount() >= ServerDefaults.MAX_NUM_DEVICES)
+		configAttr.put(DataKeyValue.CURRENT_NUM_DEVICES.name(), currentNumDevices);
+		userConfig.get().setDataAttributes(jsConverter.mapToJSON(configAttr));
+
+		if (currentNumDevices > maxDevices)
 			throw new LimitExceededException("Device count exceeded");
 
 		String newUID = UUID.randomUUID().toString();
@@ -167,6 +174,7 @@ public class DeviceServiceJpa implements DeviceService {
 		deviceEntity.addPassword(passEntity);
 		deviceEntity.addDataToUser(dataEntity);
 		passwordDao.save(passEntity);
+		dataDao.save(userConfig.get());
 		dataDao.save(dataEntity);
 		userDao.save(deviceEntity);
 		userDao.save(existingUser);
@@ -220,8 +228,15 @@ public class DeviceServiceJpa implements DeviceService {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
+		Optional<DataEntity> userConfig = dataDao.findById(UserData.CONFIGURATION.name() + "@" + deviceOwner.getId());
+		Map<String, Object> configAttr = jsConverter.JSONToMap(userConfig.get().getDataAttributes());
+		int currentNumDevices = (Integer) configAttr.get(DataKeyValue.CURRENT_NUM_DEVICES.name()) - 1 ;
+
+		configAttr.put(DataKeyValue.CURRENT_NUM_DEVICES.name(), currentNumDevices);
+		userConfig.get().setDataAttributes(jsConverter.mapToJSON(configAttr));
 		
-		deviceOwner.setDeviceCount(deviceOwner.getDeviceCount() - 1);
+		this.dataDao.save(userConfig.get());
 		this.userDao.delete(deviceEntity);
 		return ueConverter.toBoundary(deviceEntity);
 	}

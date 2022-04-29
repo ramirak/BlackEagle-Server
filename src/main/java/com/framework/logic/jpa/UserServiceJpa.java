@@ -185,6 +185,8 @@ public class UserServiceJpa implements UserService {
 		attributes.put(DataKeyValue.REGISTERED_ACCOUNT.name(), RegisteredAccount.FREE_ACCOUNT.name());
 		attributes.put(DataKeyValue.MAX_DISK_QUOTA.name(), Integer.toString(ServerDefaults.MAX_STORAGE_FREE_ACCOUNT));
 		attributes.put(DataKeyValue.CURRENT_DISK_QUOTA.name(), "0");
+		attributes.put(DataKeyValue.MAX_ALLOWED_DEVICES.name(), ServerDefaults.MAX_NUM_DEVICES_FREE_ACCOUNT);
+		attributes.put(DataKeyValue.CURRENT_NUM_DEVICES.name(), 0);
 		configurationBoundary.setDataAttributes(attributes);
 		
 		/**

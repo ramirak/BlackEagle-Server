@@ -1,20 +1,41 @@
 package com.framework.constants;
 
 public enum DataKeyValue {
+	/**
+	 * Quota management
+	 * **/
 	REGISTERED_ACCOUNT,
 	MAX_DISK_QUOTA,
 	CURRENT_DISK_QUOTA,
+	MAX_ALLOWED_DEVICES,
+	CURRENT_NUM_DEVICES,
+	
+	/**
+	 * Requests management
+	 * **/
 	REQUEST_TYPE,
-	FILTER_TYPE,
 	COMMAND_TYPE,
 	COMMAND_PARAMETER,
-	PATH,
-	IP_ADDR,
-	GEO_LOCATION,
+	
+	/**
+	 * Filter URL
+	 * **/
+	FILTER_TYPE,
+	ADDITIONAL_SITES,
+	ADDITIONAL_SITES_OPERATION,
+	
+	/**
+	 * Files
+	 * **/
 	ATTACHMENT,
 	FILE_SIZE,
 	DATA,
-	ADDITIONAL_SITES,
-	ADDITIONAL_SITES_OPERATION
+	PATH,
+	
+	/**
+	 * Users
+	 * **/
+	IP_ADDR,
+	GEO_LOCATION,
 }
 

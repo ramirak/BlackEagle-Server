@@ -7,7 +7,6 @@ public class UserBoundary {
 	private UserRole role;
 	private String name;
 	private Boolean active;
-	private Integer deviceCount;
 	private UserBoundary owner;
 	
 	public UserBoundary() {
@@ -30,12 +29,6 @@ public class UserBoundary {
 	}
 	public void setActive(Boolean active) {
 		this.active = active;
-	}
-	public Integer getDeviceCount() {
-		return deviceCount;
-	}
-	public void setDeviceCount(int deviceCount) {
-		this.deviceCount = deviceCount;
 	}
 	public UserBoundary getOwner() {
 		return owner;

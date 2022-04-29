@@ -36,7 +36,6 @@ public class UserEntity implements Persistable<String>{
 	  
 	private String role;
 	private String name;
-	private int deviceCount;
 	private boolean active;
 
 	@ManyToOne
@@ -87,14 +86,6 @@ public class UserEntity implements Persistable<String>{
 
 	public void setRole(String role) {
 		this.role = role;
-	}
-
-	public int getDeviceCount() {
-		return deviceCount;
-	}
-
-	public void setDeviceCount(int deviceCount) {
-		this.deviceCount = deviceCount;
 	}
 
 	public UserEntity getDeviceOwner() {
@@ -169,7 +160,6 @@ public class UserEntity implements Persistable<String>{
 	public void addDeviceToUser(UserEntity deviceEntity) {
 		this.devices.add(deviceEntity);
 		deviceEntity.setDeviceOwner(this);
-		deviceCount++;
 	}
 
 	public void addEventToUser(EventEntity eventEntity) {
@@ -179,7 +169,7 @@ public class UserEntity implements Persistable<String>{
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(active, deviceCount, deviceOwner, role, name, uid);
+		return Objects.hash(active, deviceOwner, role, name, uid);
 	}
 
 	@Override
@@ -191,7 +181,7 @@ public class UserEntity implements Persistable<String>{
 		if (getClass() != obj.getClass())
 			return false;
 		UserEntity other = (UserEntity) obj;
-		return active == other.active && deviceCount == other.deviceCount
+		return active == other.active 
 				&& Objects.equals(deviceOwner, other.deviceOwner) && Objects.equals(devices, other.devices)
 				&& Objects.equals(passwords, other.passwords) && Objects.equals(events, other.events)
 				&& Objects.equals(role, other.role) &&  Objects.equals(name, other.name) && Objects.equals(uid, other.uid)
