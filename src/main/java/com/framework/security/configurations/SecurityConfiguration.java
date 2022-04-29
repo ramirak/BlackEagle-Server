@@ -85,7 +85,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 						"/device/**",
 						"/data/update/**",
 						"/data/delete/**",
-						"/data/deleteAll/**"
+						"/data/deleteAll/**",
+						"/events/getAll/**"
 				)
 				.hasAnyAuthority(PLAYER)
 				.antMatchers(

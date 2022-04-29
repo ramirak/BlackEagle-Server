@@ -122,6 +122,7 @@ public class DeviceServiceJpa implements DeviceService {
 	public UserBoundary addDevice(UserBoundary device) {
 		utils.assertNull(device);
 		utils.assertNull(device.getName());
+		utils.assertEmptyString(device.getName());
 
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
 		UserEntity existingUser = userDao.findById(authenticatedUser).get();
@@ -164,6 +165,7 @@ public class DeviceServiceJpa implements DeviceService {
 		attributes.put(FilterType.PORN.name(), "false");
 		attributes.put(FilterType.SOCIAL.name(), "false");
 		attributes.put(DataKeyValue.ADDITIONAL_SITES.name(), jsConverter.setToJSON(new HashSet<Object>()));
+		attributes.put(DataKeyValue.FILE_SIZE.name(), "0");
 		dataBoundary.setDataAttributes(attributes);
 
 		UserEntity deviceEntity = this.ueConverter.fromBoundary(device);
@@ -224,7 +226,7 @@ public class DeviceServiceJpa implements DeviceService {
 		utils.assertOwnership(authenticatedUser, deviceOwner.getId());
 
 		// Sum up all the sizes
-		double sizeSum = dataDao.findAllByOwnerUid(deviceId).stream()
+		double sizeSum = dataDao.findAllByDataOwnerUid(deviceId).stream()
 				.mapToDouble(data -> Double.parseDouble(
 						(String) jsConverter.JSONToMap(data.getDataAttributes()).get(DataKeyValue.FILE_SIZE.name()))).sum();
 		try {

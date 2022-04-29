@@ -132,6 +132,8 @@ public class DataServiceJpa implements DataService {
 		newData.setCreatedTimestamp(new Date());
 
 		newData.getDataAttributes().put(DataKeyValue.ATTACHMENT.name(), Boolean.FALSE);
+		newData.getDataAttributes().put(DataKeyValue.FILE_SIZE.name(), "0");
+
 		DataEntity dataEntity = this.deConverter.fromBoundary(newData);
 		existingOwner.addDataToUser(dataEntity);
 

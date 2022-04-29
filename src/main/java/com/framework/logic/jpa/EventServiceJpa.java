@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.framework.boundaries.EventBoundary;
 import com.framework.constants.DataKeyValue;
@@ -58,6 +59,7 @@ public class EventServiceJpa implements EventService{
 	}
 	
 	@Override
+	@Transactional
 	public EventEntity createEvent(String creator,EventType eventType) {
 	    Map<String, Object> eventAttr = new TreeMap<>();
 	    // Map the IP address to a new attribute
@@ -74,6 +76,7 @@ public class EventServiceJpa implements EventService{
 	}
 
 	@Override
+	@Transactional
 	public List<EventBoundary> getAllData(int page, int size) {
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
 

@@ -1,11 +1,13 @@
 package com.framework.logic.converters;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.framework.boundaries.EventBoundary;
 import com.framework.constants.EventType;
 import com.framework.data.EventEntity;
 
+@Component
 public class EventEntityConverterImplementation implements EntityConverter<EventEntity, EventBoundary> {
 	private JsonConverter jsConverter;
 
