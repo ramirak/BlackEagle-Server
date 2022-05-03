@@ -69,7 +69,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 				 */
 				.antMatchers( 
 						"/login", 
-						"/users/register"
+						"/users/register",
+						"/users/sessionCheck"
 				)
 				.permitAll()
 				.antMatchers(

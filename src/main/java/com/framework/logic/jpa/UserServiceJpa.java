@@ -39,6 +39,7 @@ import com.framework.data.dao.UserDao;
 import com.framework.exceptions.AlreadyExistingException;
 import com.framework.exceptions.InvalidMailException;
 import com.framework.exceptions.NotFoundException;
+import com.framework.exceptions.SessionExpiredException;
 import com.framework.exceptions.UnauthorizedRequest;
 import com.framework.exceptions.WeakPasswordException;
 import com.framework.logic.UserService;
@@ -67,7 +68,7 @@ public class UserServiceJpa implements UserService {
 	private SessionAttributes session;
 	private DictionaryAttackPrevention dap;
 	private EmailService emailService;
-	
+
 	public UserServiceJpa() {
 	}
 
@@ -80,7 +81,7 @@ public class UserServiceJpa implements UserService {
 	public void setDataDao(DataDao dataDao) {
 		this.dataDao = dataDao;
 	}
-	
+
 	@Autowired
 	public void setEventServiceJpa(EventServiceJpa eventServiceJpa) {
 		this.eventServiceJpa = eventServiceJpa;
@@ -120,7 +121,7 @@ public class UserServiceJpa implements UserService {
 	public void setDeConverter(DataEntityConverterImplementation deConverter) {
 		this.deConverter = deConverter;
 	}
-	
+
 	@Autowired
 	public void setUtils(Validations utils) {
 		this.utils = utils;
@@ -153,17 +154,17 @@ public class UserServiceJpa implements UserService {
 
 		/**
 		 * Basic account details
-		 * **/
+		 **/
 		Optional<UserEntity> existingUser = userDao.findById(user.getUserId().getUID());
 		if (existingUser.isPresent())
 			throw new AlreadyExistingException("uid already in the database");
-		user.getUserId().getPasswordBoundary().setCreationTime(new Date());	
+		user.getUserId().getPasswordBoundary().setCreationTime(new Date());
 		user.setRole(UserRole.PLAYER);
 		user.setActive(true);
-		
+
 		/**
 		 * Password setup
-		 * **/
+		 **/
 		if (!passwordRules.checkMail(user.getUserId().getUID()))
 			throw new InvalidMailException("Invalid mail");
 		if (dap.isPassInDictionary(user.getUserId().getPasswordBoundary().getPassword()))
@@ -176,7 +177,7 @@ public class UserServiceJpa implements UserService {
 
 		/**
 		 * Configuration setup
-		 * **/
+		 **/
 		DataBoundary configurationBoundary = new DataBoundary();
 		configurationBoundary.setDataId(UserData.CONFIGURATION.name() + "@" + user.getUserId().getUID());
 		configurationBoundary.setDataType(UserData.CONFIGURATION);
@@ -189,17 +190,17 @@ public class UserServiceJpa implements UserService {
 		attributes.put(DataKeyValue.CURRENT_NUM_DEVICES.name(), 0);
 		attributes.put(DataKeyValue.FILE_SIZE.name(), "0");
 		configurationBoundary.setDataAttributes(attributes);
-		
+
 		/**
 		 * Save to DB
-		 * **/
+		 **/
 		UserEntity ue = ueConverter.fromBoundary(user);
 		DataEntity configurationEntity = this.deConverter.fromBoundary(configurationBoundary);
-		PasswordEntity pe = peConverter.fromBoundary(user.getUserId().getPasswordBoundary());	
+		PasswordEntity pe = peConverter.fromBoundary(user.getUserId().getPasswordBoundary());
 
-		ue.addDataToUser(configurationEntity);		
+		ue.addDataToUser(configurationEntity);
 		ue.addPassword(pe);
-		
+
 		dataDao.save(configurationEntity);
 		userDao.save(ue);
 		return user;
@@ -333,6 +334,12 @@ public class UserServiceJpa implements UserService {
 		}
 		userDao.deleteById(authenticatedUser);
 		return ueConverter.toBoundary(existingUser.get());
+	}
+
+	@Override
+	public void sessionCheck() {
+		if (session.retrieveAuthenticatedUsername().equals("anonymousUser"))
+			throw new SessionExpiredException();
 	}
 
 	@Override

@@ -16,5 +16,7 @@ public interface UserService extends UserDetailsService{
 	public void resetPassword(PasswordBoundary passDetails);
 	
 	public UserBoundary deleteAccount(UserLoginDetails loginDetails);
+	
+	public void sessionCheck();
 		
 }

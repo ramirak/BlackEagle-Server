@@ -46,4 +46,9 @@ public class UserController {
 	public UserBoundary deleteAccount(@RequestBody UserLoginDetails loginDetails) {
 		return userService.deleteAccount(loginDetails);
 	}
+	
+	@RequestMapping(path = "/users/sessionCheck", method = RequestMethod.GET)
+	public void sessionCheck() {
+		userService.sessionCheck();
+	}
 }
