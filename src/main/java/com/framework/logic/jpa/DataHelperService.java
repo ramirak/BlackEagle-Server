@@ -4,9 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.framework.boundaries.DataBoundary;
 import com.framework.constants.CommandType;
-import com.framework.constants.ConfigType;
 import com.framework.constants.DataKeyValue;
-import com.framework.constants.FilterType;
 import com.framework.constants.UserData;
 import com.framework.constants.UserRole;
 import com.framework.data.UserEntity;
@@ -15,7 +13,7 @@ import com.framework.exceptions.UnauthorizedRequest;
 
 @Service
 public class DataHelperService {
-	
+
 	public Double getFileSize(long size) {
 		return ((double) size / 1048576);
 	}
@@ -67,26 +65,6 @@ public class DataHelperService {
 		}
 	}
 
-	public void checkConfig(UserEntity existingOwner, DataBoundary newData) {
-		if (existingOwner.getRole().equals(UserRole.DEVICE.name())) {
-			Object filterA = newData.getDataAttributes().get(FilterType.FAKENEWS.name());
-			Object filterB = newData.getDataAttributes().get(FilterType.GAMBLING.name());
-			Object filterC = newData.getDataAttributes().get(FilterType.PORN.name());
-			Object filterD = newData.getDataAttributes().get(FilterType.SOCIAL.name());
-
-			if (filterA == null || !(filterA instanceof String) || filterB == null || !(filterB instanceof String)
-					|| filterC == null || !(filterC instanceof String) || filterD == null
-					|| !(filterD instanceof String))
-				throw new BadRequestException("Invalid filter type");
-
-		} else { // User of either type PLAYER or ADMIN
-			Object optA = newData.getDataAttributes().get(ConfigType.NOTIFICATION_EMAIL.name());
-			Object optB = newData.getDataAttributes().get(ConfigType.DELETE_IF_INACTIVE.name());
-			if (optA == null || !(optA instanceof String) || optB == null || !(optB instanceof String))
-				throw new BadRequestException("Invalid config type");
-		}
-	}
-
 	private void requireCommand(String cmd) {
 		if (cmd.equals(CommandType.taskkill) || cmd.equals(CommandType.tasklist) || cmd.equals(CommandType.dirHidden)
 				|| cmd.equals(CommandType.dirOrdered))
@@ -98,7 +76,7 @@ public class DataHelperService {
 		if (!cmd.equals(CommandType.tasklist)) {
 			if (!param.toString().matches("([\\\\a-zA-Z0-9_.-])+"))
 				throw new BadRequestException("Additional parameter should be a path or filename");
-		} else if(!param.toString().isBlank()) {
+		} else if (!param.toString().isBlank()) {
 			throw new BadRequestException("This command cannot have additional parameters");
 		}
 	}

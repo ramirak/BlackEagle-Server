@@ -37,5 +37,6 @@ public enum DataKeyValue {
 	 * **/
 	IP_ADDR,
 	GEO_LOCATION,
+	IS_ACTIVE
 }
 

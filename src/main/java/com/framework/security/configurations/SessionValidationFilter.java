@@ -31,7 +31,7 @@ public class SessionValidationFilter extends OncePerRequestFilter {
 			// Find the corresponding user in the database
 			Optional<UserEntity> existingEntity = userDao.findById(auth.getName());
 
-			if (existingEntity.isEmpty() || !existingEntity.get().isActive())
+			if (existingEntity.isEmpty())
 				// Session timeout for removed or non-active accounts
 				new SecurityContextLogoutHandler().logout(request, response, auth);
 		}

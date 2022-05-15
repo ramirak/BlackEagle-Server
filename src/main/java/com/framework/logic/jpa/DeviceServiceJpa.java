@@ -126,7 +126,7 @@ public class DeviceServiceJpa implements DeviceService {
 
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
 		UserEntity existingUser = userDao.findById(authenticatedUser).get();
-		
+
 		Optional<DataEntity> userConfig = dataDao.findById(UserData.CONFIGURATION.name() + "@" + existingUser.getId());
 		Map<String, Object> configAttr = jsConverter.JSONToMap(userConfig.get().getDataAttributes());
 		int maxDevices = (Integer) configAttr.get(DataKeyValue.MAX_ALLOWED_DEVICES.name());
@@ -146,7 +146,6 @@ public class DeviceServiceJpa implements DeviceService {
 			newUID = UUID.randomUUID().toString();
 
 		device.setRole(UserRole.DEVICE);
-		device.setActive(true);
 		PasswordBoundary passBoundary = new PasswordBoundary();
 		passBoundary.setActive(true);
 		passBoundary.setCreationTime(new Date());
@@ -160,6 +159,7 @@ public class DeviceServiceJpa implements DeviceService {
 		dataBoundary.setDataType(UserData.CONFIGURATION);
 		dataBoundary.setCreatedTimestamp(new Date());
 		Map<String, Object> attributes = new HashMap<>();
+		attributes.put(DataKeyValue.IS_ACTIVE.name(), "true");
 		attributes.put(FilterType.FAKENEWS.name(), "false");
 		attributes.put(FilterType.GAMBLING.name(), "false");
 		attributes.put(FilterType.PORN.name(), "false");
@@ -228,24 +228,25 @@ public class DeviceServiceJpa implements DeviceService {
 		// Sum up all the sizes
 		double sizeSum = dataDao.findAllByDataOwnerUid(deviceId).stream()
 				.mapToDouble(data -> Double.parseDouble(
-						(String) jsConverter.JSONToMap(data.getDataAttributes()).get(DataKeyValue.FILE_SIZE.name()))).sum();
+						(String) jsConverter.JSONToMap(data.getDataAttributes()).get(DataKeyValue.FILE_SIZE.name())))
+				.sum();
 		try {
 			FileUtils.deleteDirectory(new File(ServerDefaults.SERVER_USER_DATA_PATH + "/" + deviceId));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		Optional<DataEntity> userConfig = dataDao.findById(UserData.CONFIGURATION.name() + "@" + deviceOwner.getId());
 		Map<String, Object> configAttr = jsConverter.JSONToMap(userConfig.get().getDataAttributes());
-		int currentNumDevices = (Integer) configAttr.get(DataKeyValue.CURRENT_NUM_DEVICES.name()) - 1 ;
+		int currentNumDevices = (Integer) configAttr.get(DataKeyValue.CURRENT_NUM_DEVICES.name()) - 1;
 		double currentQuota = Double.parseDouble((String) configAttr.get(DataKeyValue.CURRENT_DISK_QUOTA.name()));
 		currentQuota -= sizeSum;
 		if (currentQuota < 0)
 			currentQuota = 0;
-		configAttr.put(DataKeyValue.CURRENT_DISK_QUOTA.name(), Double.toString(currentQuota));		
+		configAttr.put(DataKeyValue.CURRENT_DISK_QUOTA.name(), Double.toString(currentQuota));
 		configAttr.put(DataKeyValue.CURRENT_NUM_DEVICES.name(), currentNumDevices);
 		userConfig.get().setDataAttributes(jsConverter.mapToJSON(configAttr));
-		
+
 		this.dataDao.save(userConfig.get());
 		this.userDao.delete(deviceEntity);
 		return ueConverter.toBoundary(deviceEntity);
@@ -264,9 +265,8 @@ public class DeviceServiceJpa implements DeviceService {
 		// check if device owned by the authenticated user
 		utils.assertOwnership(deviceOwner.getId(), authenticatedUser);
 
-		return this.ueConverter.toBoundary(userDao
-				.findByActiveAndUidAndRoleAndDeviceOwnerUid(true, deviceId, UserRole.DEVICE.name(), authenticatedUser)
-				.get());
+		return this.ueConverter.toBoundary(
+				userDao.findByUidAndRoleAndDeviceOwnerUid(deviceId, UserRole.DEVICE.name(), authenticatedUser).get());
 	}
 
 	@Override
@@ -278,7 +278,7 @@ public class DeviceServiceJpa implements DeviceService {
 
 		if (existingUser.getRole().equals(UserRole.PLAYER.name())) {
 			return this.userDao
-					.findAllByActiveAndRoleAndDeviceOwnerUid(true, UserRole.DEVICE.name(), authenticatedUser,
+					.findAllByRoleAndDeviceOwnerUid(UserRole.DEVICE.name(), authenticatedUser,
 							PageRequest.of(page, size, Direction.DESC, "name"))
 					.stream().map(this.ueConverter::toBoundary).collect(Collectors.toList());
 		} else

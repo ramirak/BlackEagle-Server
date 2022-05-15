@@ -103,7 +103,7 @@ public class DataServiceJpa implements DataService {
 		validations.assertNull(newData.getDataAttributes());
 		dhs.checkDataType(newData.getDataType().name());
 
-		dhs.allowedTypes(newData.getDataType().name(), new UserData[] { UserData.REQUEST, UserData.CONFIGURATION });
+		dhs.allowedTypes(newData.getDataType().name(), new UserData[] { UserData.REQUEST });
 
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
 		UserEntity existingOwner = userDao.findById(ownerId)
@@ -114,15 +114,8 @@ public class DataServiceJpa implements DataService {
 
 		String newUID = UUID.randomUUID().toString();
 
-		// TODO: Add configuration is redundant since we add it on device creation..
-		if (newData.getDataType() == UserData.REQUEST) {
-			dhs.checkRequest(existingOwner, newData);
-			newUID = "REQUEST_" + newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name()).toString() + "@"
-					+ ownerId;
-		} else if (newData.getDataType() == UserData.CONFIGURATION) {
-			dhs.checkConfig(existingOwner, newData);
-			newUID = newData.getDataType().name() + "@" + ownerId;
-		}
+		dhs.checkRequest(existingOwner, newData);
+		newUID = "REQUEST_" + newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name()).toString() + "@" + ownerId;
 
 		Optional<DataEntity> existingDataOptional = dataDao.findById(newUID);
 		if (existingDataOptional.isPresent())
@@ -228,7 +221,6 @@ public class DataServiceJpa implements DataService {
 
 			if (update.getDataAttributes() != null) {
 				if (update.getDataType() == UserData.CONFIGURATION) {
-					dhs.checkConfig(dataEntity.getDataOwner(), update);
 					if (isDevice) {
 						Set<Object> additionalSites = jsConverter.JSONToSet((String) jsConverter
 								.JSONToMap(dataEntity.getDataAttributes()).get(DataKeyValue.ADDITIONAL_SITES.name()));

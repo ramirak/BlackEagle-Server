@@ -160,7 +160,6 @@ public class UserServiceJpa implements UserService {
 			throw new AlreadyExistingException("uid already in the database");
 		user.getUserId().getPasswordBoundary().setCreationTime(new Date());
 		user.setRole(UserRole.PLAYER);
-		user.setActive(true);
 
 		/**
 		 * Password setup
@@ -220,16 +219,6 @@ public class UserServiceJpa implements UserService {
 
 		PasswordBoundary updatedPassBoundary = update.getUserId().getPasswordBoundary();
 		String newPassword = updatedPassBoundary.getPassword();
-
-		// The device requests to suspend activity, this will still allow the parent to
-		// view its data but will stop the device's future monitoring..
-		// Currently not allowing user account deactivation but only devices
-		if (existingEntity.getRole().equals(UserRole.DEVICE.name())) {
-			if (update.getActive() != null) {
-				existingEntity.setActive(update.getActive());
-				dirty = true;
-			}
-		}
 
 		if (update.getName() != null) {
 			existingEntity.setName(update.getName());
@@ -346,7 +335,7 @@ public class UserServiceJpa implements UserService {
 	@Transactional
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		Optional<UserEntity> exitingUser = userDao.findById(username);
-		if (!exitingUser.isPresent() || !exitingUser.get().isActive())
+		if (!exitingUser.isPresent())
 			throw new UsernameNotFoundException("User does not exists in the database");
 		UserEntity ue = exitingUser.get();
 

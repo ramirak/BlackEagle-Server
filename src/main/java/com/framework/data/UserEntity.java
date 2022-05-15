@@ -27,16 +27,15 @@ import com.framework.constants.PasswordsDefaults;
 
 @Entity
 @Table(name = "Users")
-public class UserEntity implements Persistable<String>{
+public class UserEntity implements Persistable<String> {
 	@Id
 	private String uid;
-	
+
 	@Transient // Save -> update / create
 	private boolean update; // If true -> not new entity, If false, create a new entity
-	  
+
 	private String role;
 	private String name;
-	private boolean active;
 
 	@ManyToOne
 	@JoinColumn(name = "OwnerUid")
@@ -62,7 +61,7 @@ public class UserEntity implements Persistable<String>{
 		this.userData = new HashSet<>();
 		this.devices = new HashSet<>();
 	}
-	
+
 	@Override
 	public String getId() {
 		return uid;
@@ -71,7 +70,7 @@ public class UserEntity implements Persistable<String>{
 	public void setUid(String uid) {
 		this.uid = uid;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
@@ -151,7 +150,6 @@ public class UserEntity implements Persistable<String>{
 		return null;
 	}
 
-
 	public void addDataToUser(DataEntity dataEntity) {
 		this.userData.add(dataEntity);
 		dataEntity.setDataOwner(this);
@@ -169,7 +167,7 @@ public class UserEntity implements Persistable<String>{
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(active, deviceOwner, role, name, uid);
+		return Objects.hash(deviceOwner, role, name, uid);
 	}
 
 	@Override
@@ -181,38 +179,28 @@ public class UserEntity implements Persistable<String>{
 		if (getClass() != obj.getClass())
 			return false;
 		UserEntity other = (UserEntity) obj;
-		return active == other.active 
-				&& Objects.equals(deviceOwner, other.deviceOwner) && Objects.equals(devices, other.devices)
+		return Objects.equals(deviceOwner, other.deviceOwner) && Objects.equals(devices, other.devices)
 				&& Objects.equals(passwords, other.passwords) && Objects.equals(events, other.events)
-				&& Objects.equals(role, other.role) &&  Objects.equals(name, other.name) && Objects.equals(uid, other.uid)
-				&& Objects.equals(userData, other.userData);
+				&& Objects.equals(role, other.role) && Objects.equals(name, other.name)
+				&& Objects.equals(uid, other.uid) && Objects.equals(userData, other.userData);
 	}
 
-	public boolean isActive() {
-		return active;
+	public boolean isUpdate() {
+		return this.update;
 	}
 
-	public void setActive(boolean active) {
-		this.active = active;
+	public void setUpdate(boolean update) {
+		this.update = update;
 	}
 
-    public boolean isUpdate() {
-        return this.update;
-    }
+	@Override
+	public boolean isNew() {
+		return !this.update;
+	}
 
-    public void setUpdate(boolean update) {
-        this.update = update;
-    }
-
-    @Override
-    public boolean isNew() {
-        return !this.update;
-    }
-
-    @PreRemove
-    @PostLoad
-    void markUpdated() {
-        this.update = true;
-    }
-
+	@PreRemove
+	@PostLoad
+	void markUpdated() {
+		this.update = true;
+	}
 }
