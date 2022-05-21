@@ -22,6 +22,7 @@ import com.framework.constants.ServerDefaults;
 @Service
 public class EmailService {
 	private String emailPass;
+
 	public EmailService() {
 		try {
 			this.emailPass = Files.readString(Paths.get("sec/blackeagle-mail.cred"), StandardCharsets.US_ASCII);
@@ -29,8 +30,14 @@ public class EmailService {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void sendEmail(String sendTo, String text, String subject) {
+		if (!ServerDefaults.SEND_VIA_EMAIL) {
+			System.out.println("\n-------------------------------------------------------------------------\n");
+			System.out.println("Send To: " + sendTo + "\nSubject: " + subject + "\nMessage: " + text);
+			System.out.println("\n-------------------------------------------------------------------------\n");
+			return;
+		}
 		final String emailSender = ServerDefaults.SERVER_EMAIL;
 		final String passwordSender = emailPass;
 		Properties prop = new Properties();
@@ -40,7 +47,7 @@ public class EmailService {
 		prop.put("mail.smtp.starttls.enable", "true");
 		prop.put("mail.smtp.starttls.required", "true");
 		prop.put("mail.smtp.ssl.protocols", "TLSv1.2");
-		
+
 		Session session = Session.getInstance(prop, new javax.mail.Authenticator() {
 			protected PasswordAuthentication getPasswordAuthentication() {
 				return new PasswordAuthentication(emailSender, passwordSender);

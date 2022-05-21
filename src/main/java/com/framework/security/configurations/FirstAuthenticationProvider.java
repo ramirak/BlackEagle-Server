@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.framework.communication.EmailService;
 import com.framework.constants.PasswordsDefaults;
 import com.framework.constants.UserRole;
 import com.framework.data.PasswordEntity;
@@ -40,6 +41,7 @@ public class FirstAuthenticationProvider implements AuthenticationProvider {
 	private SecondFactorCachingService otp;
 	private boolean twoAuth;
 	private BruteForceProtection bfp;
+	private EmailService emailService;
 	
 	@Autowired
 	public void setUserService(UserDetailsService userService) {
@@ -71,6 +73,11 @@ public class FirstAuthenticationProvider implements AuthenticationProvider {
 		this.bfp = bfp;
 	}
 	
+	@Autowired
+	public void setEmailService(EmailService emailService) {
+		this.emailService = emailService;
+	}
+	
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 		String username = authentication.getName();
@@ -100,7 +107,7 @@ public class FirstAuthenticationProvider implements AuthenticationProvider {
 			bfp.bfpCheck(request.getRemoteAddr(), username, true);
 			if (twoAuth) {
 				try {
-					System.out.println("---------------- Current Key : " + otp.getOTP(username) + " ----------------");
+					this.emailService.sendEmail(username, otp.getOTP(username), "Second factor authentication");
 				} catch (ExecutionException e) {
 					e.printStackTrace();
 				}

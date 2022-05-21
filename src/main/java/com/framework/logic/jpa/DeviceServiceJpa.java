@@ -24,6 +24,7 @@ import com.framework.boundaries.PasswordBoundary;
 import com.framework.boundaries.UserBoundary;
 import com.framework.boundaries.UserIdBoundary;
 import com.framework.constants.DataKeyValue;
+import com.framework.constants.EventType;
 import com.framework.constants.FilterType;
 import com.framework.constants.ServerDefaults;
 import com.framework.constants.UserData;
@@ -59,7 +60,8 @@ public class DeviceServiceJpa implements DeviceService {
 	private Validations utils;
 	private SessionAttributes session;
 	private PasswordUtils passUtils;
-
+	private EventServiceJpa eventServiceJpa;
+	
 	public DeviceServiceJpa() {
 	}
 
@@ -118,6 +120,11 @@ public class DeviceServiceJpa implements DeviceService {
 		this.passUtils = passUtils;
 	}
 
+	@Autowired
+	public void setEventServiceJpa(EventServiceJpa eventServiceJpa) {
+		this.eventServiceJpa = eventServiceJpa;
+	}
+	
 	@Override
 	public UserBoundary addDevice(UserBoundary device) {
 		utils.assertNull(device);
@@ -249,6 +256,8 @@ public class DeviceServiceJpa implements DeviceService {
 
 		this.dataDao.save(userConfig.get());
 		this.userDao.delete(deviceEntity);
+		
+		eventServiceJpa.createEvent(authenticatedUser, EventType.DEVICE_DELETED);
 		return ueConverter.toBoundary(deviceEntity);
 	}
 

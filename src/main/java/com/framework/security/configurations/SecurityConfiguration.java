@@ -108,7 +108,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 						"/**"			
 				).denyAll() // Deny all access if not matching one of the above rules..
 				.and()
-				.logout();
+				.logout()
+				.and()
+				.headers()
+		        .xssProtection()
+		        .and()
+		        .contentSecurityPolicy("script-src 'self'");;
 	}
 
 	@Bean

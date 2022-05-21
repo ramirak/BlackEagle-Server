@@ -17,14 +17,6 @@ public class AdminController {
 		this.adminService = adminService;
 	}
 
-	@RequestMapping(path = "/admin/designate", 
-			method = RequestMethod.POST, 
-			produces = MediaType.APPLICATION_JSON_VALUE, 
-			consumes = MediaType.APPLICATION_JSON_VALUE)
-	public UserBoundary designateUser(@RequestBody UserBoundary newDetails) {
-		return adminService.designateUser(newDetails);
-	}
-	
 	@RequestMapping(path = "/admins/get/{userEmail}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public UserBoundary getSpecificUser(@PathVariable("userEmail") String email) {
 		return adminService.getSpecificUser(email);

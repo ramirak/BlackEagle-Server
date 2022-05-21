@@ -168,9 +168,9 @@ public class UserServiceJpa implements UserService {
 			throw new InvalidMailException("Invalid mail");
 		if (dap.isPassInDictionary(user.getUserId().getPasswordBoundary().getPassword()))
 			throw new WeakPasswordException("Password appeared in a leaked password database, choose another one");
-		// Hash the password before converting to entity
 		if (!passwordRules.checkPassword(user.getUserId().getPasswordBoundary().getPassword()))
 			throw new WeakPasswordException("Password does not meet the minimum requirenments");
+		// Hash the password before converting to entity
 		String hashedPass = passwordEncoder.encode(user.getUserId().getPasswordBoundary().getPassword());
 		user.getUserId().getPasswordBoundary().setPassword(hashedPass);
 
@@ -202,6 +202,12 @@ public class UserServiceJpa implements UserService {
 
 		dataDao.save(configurationEntity);
 		userDao.save(ue);
+
+		emailService.sendEmail(user.getUserId().getUID(), "Welcome to BlackEagle parental control service."
+				+ "\nWe truly hope you will enjoy using our program and help your family stay safe on the internet."
+				+ "\nIf you encounter any problems please refer to the Q/A section on our site.",
+				"Blackeagle Services");
+
 		return user;
 	}
 
@@ -246,6 +252,11 @@ public class UserServiceJpa implements UserService {
 					if (oldPasswordEntity.isPresent())
 						passwordDao.delete(oldPasswordEntity.get());
 					eventServiceJpa.createEvent(authenticatedUser, EventType.PASSWORD_UPDATE);
+
+					emailService.sendEmail(authenticatedUser,
+							"Your password account was just updated.\nIf you have not requested this operation, "
+									+ "please reset your password and update it as soon as possible.",
+							"Blackeagle Services - Password Changed");
 					dirty = true;
 				} else {
 					throw new WeakPasswordException("Password does not meet the minimum requirenments");
@@ -268,7 +279,9 @@ public class UserServiceJpa implements UserService {
 				isFirstTime = false;
 			String otp = this.otkService.getOTK(userEmail);
 			if (isFirstTime)
-				emailService.sendEmail(userEmail, otp, "Blackeagle - Reset password verification");
+				emailService.sendEmail(userEmail,
+						"Please enter the following one time password so we could verify it is you.\n" + otp,
+						"Blackeagle - Reset password verification");
 		} catch (ExecutionException e) {
 			e.printStackTrace();
 		}
@@ -297,6 +310,11 @@ public class UserServiceJpa implements UserService {
 		existingEntity.addPassword(pe);
 
 		eventServiceJpa.createEvent(authenticatedUser, EventType.PASSWORD_RESET);
+
+		emailService.sendEmail(authenticatedUser,
+				"Your password account was just reset.\nIf you have not requested this operation, "
+						+ "please reset your password and update it as soon as possible.",
+				"Blackeagle Services - Password Reset");
 		userDao.save(existingEntity);
 	}
 
@@ -322,6 +340,9 @@ public class UserServiceJpa implements UserService {
 			}
 		}
 		userDao.deleteById(authenticatedUser);
+		emailService.sendEmail(authenticatedUser,
+				"Your account has been deleted successfully\nThank you for using our service.\n\nBlackEagle Dev Team.",
+				"Blackeagle Services");
 		return ueConverter.toBoundary(existingUser.get());
 	}
 

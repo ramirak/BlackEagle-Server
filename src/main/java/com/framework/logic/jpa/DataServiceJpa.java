@@ -115,7 +115,8 @@ public class DataServiceJpa implements DataService {
 		String newUID = UUID.randomUUID().toString();
 
 		dhs.checkRequest(existingOwner, newData);
-		newUID = "REQUEST_" + newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name()).toString() + "@" + ownerId;
+		newUID = "REQUEST_" + newData.getDataAttributes().get(DataKeyValue.REQUEST_TYPE.name()).toString() + "@"
+				+ ownerId;
 
 		Optional<DataEntity> existingDataOptional = dataDao.findById(newUID);
 		if (existingDataOptional.isPresent())
@@ -225,6 +226,7 @@ public class DataServiceJpa implements DataService {
 						Set<Object> additionalSites = jsConverter.JSONToSet((String) jsConverter
 								.JSONToMap(dataEntity.getDataAttributes()).get(DataKeyValue.ADDITIONAL_SITES.name()));
 						String site = (String) update.getDataAttributes().get(DataKeyValue.ADDITIONAL_SITES.name());
+						site = dhs.CheckDomain(site);
 						String operation = (String) update.getDataAttributes()
 								.get(DataKeyValue.ADDITIONAL_SITES_OPERATION.name());
 						if (operation.equals("ADD"))
