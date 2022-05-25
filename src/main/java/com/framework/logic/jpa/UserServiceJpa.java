@@ -271,19 +271,25 @@ public class UserServiceJpa implements UserService {
 
 	@Override
 	public void sendOtkViaEmail(String userEmail) {
+
+		Optional<UserEntity> existingEntity = userDao.findById(userEmail);
+
 		if (!passwordRules.checkMail(userEmail))
 			throw new InvalidMailException("Invalid mail");
-		try {
-			boolean isFirstTime = true;
-			if (this.otkService.hasKey(userEmail))
-				isFirstTime = false;
-			String otp = this.otkService.getOTK(userEmail);
-			if (isFirstTime)
-				emailService.sendEmail(userEmail,
-						"Please enter the following one time password so we could verify it is you.\n" + otp,
-						"Blackeagle - Reset password verification");
-		} catch (ExecutionException e) {
-			e.printStackTrace();
+		// Do not send mail if user does not exist. also, do not notify the user the mail was not found.
+		if (!existingEntity.isEmpty()) {
+			try {
+				boolean isFirstTime = true;
+				if (this.otkService.hasKey(userEmail))
+					isFirstTime = false;
+				String otp = this.otkService.getOTK(userEmail);
+				if (isFirstTime)
+					emailService.sendEmail(userEmail,
+							"Please enter the following one time password so we could verify it is you.\n" + otp,
+							"Blackeagle - Reset password verification");
+			} catch (ExecutionException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
