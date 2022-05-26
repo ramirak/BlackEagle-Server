@@ -70,11 +70,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 				.antMatchers( 
 						"/login", 
 						"/users/register",
+						"/users/sendOTK/**",
 						"/users/sessionCheck"
 				)
 				.permitAll()
 				.antMatchers(
-						"/resetPassword"
+						"/users/resetPassword"
 				).hasAnyAuthority(PasswordsDefaults.RESET_PASSWORD_TOKEN)
 				.antMatchers(
 						"/users/update",

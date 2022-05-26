@@ -32,8 +32,8 @@ public class UserController {
 		return userService.updateUser(newDetails);
 	}
 
-	@RequestMapping(path = "/users/checkOtk/{userEmail}/{otkValue}", method = RequestMethod.GET)
-	public void verifyOtk(@PathVariable("userEmail") String email, @PathVariable("otkValue") String otpValue) {
+	@RequestMapping(path = "/users/sendOTK/{userEmail}", method = RequestMethod.GET)
+	public void sendOTK(@PathVariable("userEmail") String email) {
 		userService.sendOtkViaEmail(email);
 	}
 	

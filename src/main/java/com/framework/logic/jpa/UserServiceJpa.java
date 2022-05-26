@@ -13,6 +13,7 @@ import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -321,6 +322,8 @@ public class UserServiceJpa implements UserService {
 				"Your password account was just reset.\nIf you have not requested this operation, "
 						+ "please reset your password and update it as soon as possible.",
 				"Blackeagle Services - Password Reset");
+		
+		SecurityContextHolder.getContext().setAuthentication(null);
 		userDao.save(existingEntity);
 	}
 
