@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.framework.boundaries.DataBoundary;
 import com.framework.constants.DataKeyValue;
+import com.framework.constants.FilterType;
 import com.framework.constants.ServerDefaults;
 import com.framework.constants.UserData;
 import com.framework.constants.UserRole;
@@ -226,22 +228,49 @@ public class DataServiceJpa implements DataService {
 						Set<Object> additionalSites = jsConverter.JSONToSet((String) jsConverter
 								.JSONToMap(dataEntity.getDataAttributes()).get(DataKeyValue.ADDITIONAL_SITES.name()));
 						String site = (String) update.getDataAttributes().get(DataKeyValue.ADDITIONAL_SITES.name());
-						site = dhs.CheckDomain(site);
-						String operation = (String) update.getDataAttributes()
-								.get(DataKeyValue.ADDITIONAL_SITES_OPERATION.name());
-						if (operation.equals("ADD"))
-							additionalSites.add(ServerDefaults.FILTER_REDIRECTION + " " + site);
-						else if (operation.equals("REMOVE"))
-							additionalSites.remove(ServerDefaults.FILTER_REDIRECTION + " " + site);
-						else
-							throw new BadRequestException("Unrecognized operation");
-						update.getDataAttributes().remove(DataKeyValue.ADDITIONAL_SITES_OPERATION.name());
-						update.getDataAttributes().put(DataKeyValue.ADDITIONAL_SITES.name(),
-								jsConverter.setToJSON(additionalSites));
+
+						if (site != null) {
+							site = dhs.CheckDomain(site);
+							String operation = (String) update.getDataAttributes()
+									.get(DataKeyValue.ADDITIONAL_SITES_OPERATION.name());
+							if (operation.equals("ADD"))
+								additionalSites.add(ServerDefaults.FILTER_REDIRECTION + " " + site);
+							else if (operation.equals("REMOVE"))
+								additionalSites.remove(ServerDefaults.FILTER_REDIRECTION + " " + site);
+							else
+								throw new BadRequestException("Unrecognized operation");
+						}
+
+						Map<String, Object> originalAttr = jsConverter.JSONToMap(dataEntity.getDataAttributes());
+
+						String isActive = (String) update.getDataAttributes().get(DataKeyValue.IS_ACTIVE.name());
+						String fakenews = (String) update.getDataAttributes().get(FilterType.FAKENEWS.name());
+						String gambling = (String) update.getDataAttributes().get(FilterType.GAMBLING.name());
+						String porn = (String) update.getDataAttributes().get(FilterType.PORN.name());
+						String social = (String) update.getDataAttributes().get(FilterType.SOCIAL.name());
+
+						if (isActive != null)
+							originalAttr.put(DataKeyValue.IS_ACTIVE.name(), isActive);
+
+						if (fakenews != null)
+							originalAttr.put(FilterType.FAKENEWS.name(), fakenews);
+
+						if (gambling != null)
+							originalAttr.put(FilterType.GAMBLING.name(), gambling);
+
+						if (porn != null)
+							originalAttr.put(FilterType.PORN.name(), porn);
+
+						if (social != null)
+							originalAttr.put(FilterType.SOCIAL.name(), social);
+						
+						if (site != null)
+							originalAttr.put(DataKeyValue.ADDITIONAL_SITES.name(), jsConverter.setToJSON(additionalSites));
+
+						dataEntity.setDataAttributes(jsConverter.mapToJSON(originalAttr));
 					}
 				} else
 					throw new UnauthorizedRequest("Only configuration update is allowed right now");
-				dataEntity.setDataAttributes(jsConverter.mapToJSON(update.getDataAttributes()));
 			}
 			dataEntity = this.dataDao.save(dataEntity);
 			return this.deConverter.toBoundary(dataEntity);
