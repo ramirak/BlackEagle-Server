@@ -214,14 +214,12 @@ public class UserServiceJpa implements UserService {
 
 	@Override
 	public UserBoundary updateUser(UserBoundary update) {
-		// TODO get currently logged-in password details
 		String authenticatedUser = session.retrieveAuthenticatedUsername();
 
 		boolean dirty = false;
-		utils.assertOwnership(authenticatedUser, update.getUserId().getUID());
 
 		// Find the corresponding user in the database
-		UserEntity existingEntity = userDao.findById(update.getUserId().getUID())
+		UserEntity existingEntity = userDao.findById(authenticatedUser)
 				.orElseThrow(() -> new NotFoundException("User not found"));
 
 		PasswordBoundary updatedPassBoundary = update.getUserId().getPasswordBoundary();
@@ -233,7 +231,6 @@ public class UserServiceJpa implements UserService {
 		}
 		// The user requests to change his password
 		if (updatedPassBoundary != null && newPassword != null) {
-			// TODO Check authentication details / the user is required to enter his old
 			// password in the optional input
 			if (!passwordEncoder.matches(update.getUserId().getPasswordBoundary().getOptionalPassword(),
 					existingEntity.getActivePasswordEntity().getPassword()))
@@ -308,7 +305,10 @@ public class UserServiceJpa implements UserService {
 		// Hash the password before converting to entity
 		if (!passwordRules.checkPassword(passDetails.getPassword()))
 			throw new WeakPasswordException("Password does not meet the minimum requirenments");
-
+		if (passwordRules.isPasswordInHistory(passDetails.getPassword(), existingEntity.getPasswords()))
+			throw new WeakPasswordException("Password appears in user history");
+		
+		
 		String hashedPass = passwordEncoder.encode(passDetails.getPassword());
 		passDetails.setPassword(hashedPass);
 		passDetails.setCreationTime(new Date());
@@ -356,11 +356,21 @@ public class UserServiceJpa implements UserService {
 	}
 
 	@Override
-	public void sessionCheck() {
-		if (session.retrieveAuthenticatedUsername().equals("anonymousUser"))
+	public void sessionCheck() {	
+		if(!session.hasRole(UserRole.PLAYER.name(), session.retrieveAuthorities()))
 			throw new SessionExpiredException();
 	}
 
+	@Override
+	public UserBoundary getUserDetails() {
+		String authenticatedUser = session.retrieveAuthenticatedUsername();
+		UserEntity existingEntity = userDao.findById(authenticatedUser)
+				.orElseThrow(() -> new NotFoundException("User not found"));
+		UserBoundary ub = ueConverter.toBoundary(existingEntity);
+		ub.getUserId().setPassword(null);
+		return ub;
+	}
+	
 	@Override
 	@Transactional
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -377,5 +387,6 @@ public class UserServiceJpa implements UserService {
 		return new org.springframework.security.core.userdetails.User(ue.getId(),
 				ue.getActivePasswordEntity().getPassword(), grantedAuthorities);
 	}
+
 
 }

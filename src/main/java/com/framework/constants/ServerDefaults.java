@@ -22,7 +22,7 @@ public interface ServerDefaults extends ServerTime{
 			
 	public final boolean 
 	FORCE_EMAIL_VERIFICATION = true,
-	SEND_VIA_EMAIL = false;
+	SEND_VIA_EMAIL = true;
 	
 	public final String 
 	DEFAULT_ENCRYPTION_METHOD = "AES/CBC/PKCS5Padding",

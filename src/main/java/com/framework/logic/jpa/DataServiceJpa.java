@@ -229,7 +229,7 @@ public class DataServiceJpa implements DataService {
 								.JSONToMap(dataEntity.getDataAttributes()).get(DataKeyValue.ADDITIONAL_SITES.name()));
 						String site = (String) update.getDataAttributes().get(DataKeyValue.ADDITIONAL_SITES.name());
 
-						if (site != null) {
+						if (site != null && !site.isEmpty()) {
 							site = dhs.CheckDomain(site);
 							String operation = (String) update.getDataAttributes()
 									.get(DataKeyValue.ADDITIONAL_SITES_OPERATION.name());
@@ -264,7 +264,7 @@ public class DataServiceJpa implements DataService {
 						if (social != null)
 							originalAttr.put(FilterType.SOCIAL.name(), social);
 						
-						if (site != null)
+						if (site != null && !site.isEmpty())
 							originalAttr.put(DataKeyValue.ADDITIONAL_SITES.name(), jsConverter.setToJSON(additionalSites));
 
 						dataEntity.setDataAttributes(jsConverter.mapToJSON(originalAttr));

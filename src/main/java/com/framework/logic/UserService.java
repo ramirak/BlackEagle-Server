@@ -17,6 +17,8 @@ public interface UserService extends UserDetailsService{
 	
 	public UserBoundary deleteAccount(UserLoginDetails loginDetails);
 	
+	public UserBoundary getUserDetails();
+	
 	public void sessionCheck();
 		
 }
