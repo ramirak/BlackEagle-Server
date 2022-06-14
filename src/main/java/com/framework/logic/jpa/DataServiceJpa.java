@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -173,9 +172,6 @@ public class DataServiceJpa implements DataService {
 			double currentQuota = Double.parseDouble((String) configAttr.get(DataKeyValue.CURRENT_DISK_QUOTA.name()));
 			double maxQuota = Double.parseDouble((String) configAttr.get(DataKeyValue.MAX_DISK_QUOTA.name()));
 			currentQuota += size;
-			System.out.println("size = " + size);
-			System.out.println("currentQuota = " + currentQuota);
-			System.out.println("maxQuota = " + maxQuota);
 
 			if (currentQuota > maxQuota)
 				throw new LimitExceededException("User exceeded his account disk quota");
@@ -263,9 +259,10 @@ public class DataServiceJpa implements DataService {
 
 						if (social != null)
 							originalAttr.put(FilterType.SOCIAL.name(), social);
-						
+
 						if (site != null && !site.isEmpty())
-							originalAttr.put(DataKeyValue.ADDITIONAL_SITES.name(), jsConverter.setToJSON(additionalSites));
+							originalAttr.put(DataKeyValue.ADDITIONAL_SITES.name(),
+									jsConverter.setToJSON(additionalSites));
 
 						dataEntity.setDataAttributes(jsConverter.mapToJSON(originalAttr));
 					}
@@ -415,5 +412,4 @@ public class DataServiceJpa implements DataService {
 						PageRequest.of(page, size, Direction.DESC, "createdTimestamp"))
 				.stream().map(this.deConverter::toBoundary).collect(Collectors.toList());
 	}
-
 }

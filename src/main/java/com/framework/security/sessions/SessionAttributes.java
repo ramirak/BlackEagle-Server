@@ -11,6 +11,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Service
 public class SessionAttributes {
+
 	public String retrieveAuthenticatedUsername() {
 		return SecurityContextHolder.getContext().getAuthentication().getName();
 	}
@@ -27,15 +28,14 @@ public class SessionAttributes {
 		}
 		return false;
 	}
-	
-	public Authentication getAuthenticationDetails(){
+
+	public Authentication getAuthenticationDetails() {
 		return SecurityContextHolder.getContext().getAuthentication();
 	}
-	
+
 	public String retrieveIpAddress() {
 		ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
 		HttpServletRequest request = attr.getRequest();
 		return request.getRemoteAddr();
 	}
-
 }

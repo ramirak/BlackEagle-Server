@@ -37,5 +37,4 @@ public class UserEntityConverterImplementation implements EntityConverter<UserEn
 		userEntity.setUid(boundary.getUserId().getUID());
 		return userEntity;
 	}
-
 }

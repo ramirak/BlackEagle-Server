@@ -58,5 +58,4 @@ public class DataBoundary {
 	public void setDataOwner(UserEntity dataOwner) {
 		this.dataOwner = dataOwner;
 	}
-
 }

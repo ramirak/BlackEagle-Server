@@ -58,5 +58,4 @@ public class BruteForceProtection {
 	private void removefailedLoginAttempts(String uid) {
 		this.failedLoginAttempts.invalidate(uid);
 	}
-
 }

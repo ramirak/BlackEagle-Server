@@ -16,9 +16,8 @@ public class SecondFactorCachingService {
 	private Cache<String, String> otpCache;
 
 	public SecondFactorCachingService() {
-		this.otpCache = CacheBuilder.newBuilder()
-				.expireAfterWrite(60, TimeUnit.SECONDS).maximumSize(ServerDefaults.MAX_CACHE_SIZE)
-				.build(new CacheLoader<String, String>() {
+		this.otpCache = CacheBuilder.newBuilder().expireAfterWrite(60, TimeUnit.SECONDS)
+				.maximumSize(ServerDefaults.MAX_CACHE_SIZE).build(new CacheLoader<String, String>() {
 					@Override
 					public String load(String key) throws Exception {
 						return generateOTP(key);
@@ -40,9 +39,9 @@ public class SecondFactorCachingService {
 	public void removeOTP(String uid) {
 		this.otpCache.invalidate(uid);
 	}
-	
+
 	public boolean hasKey(String key) {
-		if(this.otpCache.asMap().containsKey(key))
+		if (this.otpCache.asMap().containsKey(key))
 			return true;
 		return false;
 	}
@@ -50,5 +49,4 @@ public class SecondFactorCachingService {
 	public void clearCache() {
 		otpCache.invalidateAll();
 	}
-
 }

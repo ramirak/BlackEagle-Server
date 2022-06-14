@@ -78,9 +78,8 @@ public class DataEncryptionService {
 		Cipher cipher = Cipher.getInstance(algorithm);
 		cipher.init(Cipher.DECRYPT_MODE, key, ivSpec);
 		byte[] plainText = cipher.doFinal(originalCipherText);
-		if(encode)
+		if (encode)
 			return Base64.getEncoder().encode(plainText);
 		return plainText;
 	}
-
 }

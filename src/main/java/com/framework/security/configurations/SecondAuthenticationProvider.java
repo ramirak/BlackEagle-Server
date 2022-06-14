@@ -46,18 +46,18 @@ public class SecondAuthenticationProvider implements AuthenticationProvider {
 	public void setOtp(SecondFactorCachingService otp) {
 		this.otp = otp;
 	}
-	
+
 	@Autowired
 	public void setBfp(BruteForceProtection bfp) {
 		this.bfp = bfp;
 	}
-	
+
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 		String username = authentication.getName();
 		String password = (String) authentication.getCredentials();
-		HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes())
-                .getRequest(); 
+		HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
+				.getRequest();
 
 		UserDetails user;
 		try {
@@ -66,8 +66,9 @@ public class SecondAuthenticationProvider implements AuthenticationProvider {
 			// Do not reveal if user was not found, show bad credentials..
 			throw new BadCredentialsException("Failed to authenticate");
 		}
-		
-		if (session.getAuthenticationDetails() != null && session.hasRole(PasswordsDefaults.TEMP_TOKEN, session.retrieveAuthorities())) {
+
+		if (session.getAuthenticationDetails() != null
+				&& session.hasRole(PasswordsDefaults.TEMP_TOKEN, session.retrieveAuthorities())) {
 			try {
 				if (otp.hasKey(username)) {
 					if (otp.getOTP(username).equals(password)) {

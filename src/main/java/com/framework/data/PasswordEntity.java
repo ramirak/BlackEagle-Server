@@ -23,11 +23,11 @@ public class PasswordEntity implements Serializable, Comparable<PasswordEntity> 
 
 	private static final long serialVersionUID = 1L;
 	private String password;
-	
+
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date creationTime;
 	private boolean active;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "pass_owner")
 	private UserEntity passOwner;
@@ -43,7 +43,7 @@ public class PasswordEntity implements Serializable, Comparable<PasswordEntity> 
 	public void setId(int id) {
 		this.id = id;
 	}
-	
+
 	public void setOwner(UserEntity passOwner) {
 		this.passOwner = passOwner;
 	}
@@ -86,15 +86,12 @@ public class PasswordEntity implements Serializable, Comparable<PasswordEntity> 
 		if (getClass() != obj.getClass())
 			return false;
 		PasswordEntity other = (PasswordEntity) obj;
-		return active == other.active && Objects.equals(creationTime, other.creationTime)
-				&& id == other.id && Objects.equals(passOwner, other.passOwner)
-				&& Objects.equals(password, other.password);
+		return active == other.active && Objects.equals(creationTime, other.creationTime) && id == other.id
+				&& Objects.equals(passOwner, other.passOwner) && Objects.equals(password, other.password);
 	}
 
 	@Override
 	public int compareTo(PasswordEntity o) {
 		return this.creationTime.compareTo(o.creationTime);
 	}
-
-
 }

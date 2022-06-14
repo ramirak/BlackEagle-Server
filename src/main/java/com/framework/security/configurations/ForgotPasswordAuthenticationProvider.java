@@ -85,7 +85,8 @@ public class ForgotPasswordAuthenticationProvider implements AuthenticationProvi
 		} catch (ExecutionException e) {
 			e.printStackTrace();
 		}
-		// If we arrived here it means all providers failed authentication, count it as failed login attempt in the BFP service..
+		// If we arrived here it means all providers failed authentication, count it as
+		// failed login attempt in the BFP service..
 		bfp.bfpCheck(request.getRemoteAddr(), username, false);
 		throw new BadCredentialsException("Failed to authenticate");
 	}

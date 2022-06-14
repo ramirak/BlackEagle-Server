@@ -15,7 +15,7 @@ public class DataEntityConverterImplementation implements EntityConverter<DataEn
 	public void setJsConverter(JsonConverter jsConverter) {
 		this.jsConverter = jsConverter;
 	}
-	
+
 	@Override
 	public DataBoundary toBoundary(DataEntity entity) {
 		DataBoundary dataBoundary = new DataBoundary();
@@ -35,5 +35,4 @@ public class DataEntityConverterImplementation implements EntityConverter<DataEn
 		dataEntity.setDataType(boundary.getDataType().name());
 		return dataEntity;
 	}
-
 }

@@ -3,7 +3,7 @@ package com.framework.boundaries;
 public class UserIdBoundary {
 	private String uid;
 	private PasswordBoundary password;
-	
+
 	public UserIdBoundary() {
 		super();
 	}
@@ -28,7 +28,4 @@ public class UserIdBoundary {
 	public void setPassword(PasswordBoundary password) {
 		this.password = password;
 	}
-
-
-
 }

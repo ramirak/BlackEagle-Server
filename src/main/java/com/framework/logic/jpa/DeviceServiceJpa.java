@@ -61,7 +61,7 @@ public class DeviceServiceJpa implements DeviceService {
 	private SessionAttributes session;
 	private PasswordUtils passUtils;
 	private EventServiceJpa eventServiceJpa;
-	
+
 	public DeviceServiceJpa() {
 	}
 
@@ -124,7 +124,7 @@ public class DeviceServiceJpa implements DeviceService {
 	public void setEventServiceJpa(EventServiceJpa eventServiceJpa) {
 		this.eventServiceJpa = eventServiceJpa;
 	}
-	
+
 	@Override
 	public UserBoundary addDevice(UserBoundary device) {
 		utils.assertNull(device);
@@ -256,7 +256,7 @@ public class DeviceServiceJpa implements DeviceService {
 
 		this.dataDao.save(userConfig.get());
 		this.userDao.delete(deviceEntity);
-		
+
 		eventServiceJpa.createEvent(authenticatedUser, EventType.DEVICE_DELETED);
 		return ueConverter.toBoundary(deviceEntity);
 	}

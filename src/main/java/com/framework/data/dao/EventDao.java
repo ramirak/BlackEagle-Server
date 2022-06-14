@@ -8,10 +8,8 @@ import com.framework.constants.EventType;
 import com.framework.data.EventEntity;
 
 public interface EventDao extends PagingAndSortingRepository<EventEntity, String> {
-	
+
 	public List<EventEntity> findAllByTypeAndEventOwnerUid(EventType type, String ownerUid, Pageable pageable);
-	
+
 	public List<EventEntity> findAllByEventOwnerUid(String ownerUid, Pageable pageable);
-	
-	
 }

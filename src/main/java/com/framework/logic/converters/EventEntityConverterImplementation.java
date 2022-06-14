@@ -15,7 +15,7 @@ public class EventEntityConverterImplementation implements EntityConverter<Event
 	public void setJsConverter(JsonConverter jsConverter) {
 		this.jsConverter = jsConverter;
 	}
-	
+
 	@Override
 	public EventBoundary toBoundary(EventEntity entity) {
 		EventBoundary eb = new EventBoundary();
@@ -33,5 +33,4 @@ public class EventEntityConverterImplementation implements EntityConverter<Event
 		entity.setEventAttributes(jsConverter.mapToJSON(boundary.getEventAttributes()));
 		return entity;
 	}
-
 }

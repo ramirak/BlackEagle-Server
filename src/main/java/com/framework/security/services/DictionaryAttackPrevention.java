@@ -42,14 +42,13 @@ public class DictionaryAttackPrevention {
 	}
 
 	public Boolean isPassInDictionary(String password) {
-		  if (!PasswordsDefaults.PREVENT_DICTIONARY) 
-			  return false; 
-		  if(weakPasswords.contains(password.toLowerCase())) {
-			  System.out.println("found");
-			  return true;
-		  }
-		  System.out.println("not found");
-		  return false;
+		if (!PasswordsDefaults.PREVENT_DICTIONARY)
+			return false;
+		if (weakPasswords.contains(password.toLowerCase())) {
+			System.out.println("found");
+			return true;
+		}
+		System.out.println("not found");
+		return false;
 	}
-
 }

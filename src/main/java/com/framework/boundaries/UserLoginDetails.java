@@ -22,5 +22,4 @@ public class UserLoginDetails {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-
 }

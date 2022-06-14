@@ -42,7 +42,7 @@ public class FirstAuthenticationProvider implements AuthenticationProvider {
 	private boolean twoAuth;
 	private BruteForceProtection bfp;
 	private EmailService emailService;
-	
+
 	@Autowired
 	public void setUserService(UserDetailsService userService) {
 		this.userService = userService;
@@ -72,18 +72,18 @@ public class FirstAuthenticationProvider implements AuthenticationProvider {
 	public void setBfp(BruteForceProtection bfp) {
 		this.bfp = bfp;
 	}
-	
+
 	@Autowired
 	public void setEmailService(EmailService emailService) {
 		this.emailService = emailService;
 	}
-	
+
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 		String username = authentication.getName();
 		String password = (String) authentication.getCredentials();
-		HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes())
-                .getRequest(); 
+		HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
+				.getRequest();
 
 		UserDetails user;
 		try {
@@ -92,7 +92,8 @@ public class FirstAuthenticationProvider implements AuthenticationProvider {
 			return null;
 		}
 
-		if (session.getAuthenticationDetails() != null && session.hasRole(PasswordsDefaults.TEMP_TOKEN, session.retrieveAuthorities()))
+		if (session.getAuthenticationDetails() != null
+				&& session.hasRole(PasswordsDefaults.TEMP_TOKEN, session.retrieveAuthorities()))
 			return null; // No need to check here, skip to 2fa provider
 		else if (session.hasRole(UserRole.DEVICE.name(), user.getAuthorities())) // Devices should login without 2fa ..
 			twoAuth = false;

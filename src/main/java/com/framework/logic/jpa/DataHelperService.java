@@ -47,12 +47,13 @@ public class DataHelperService {
 	}
 
 	public String CheckDomain(String domain) {
-		domain = domain.replaceAll("\\s+","");
-		if(!domain.matches("^((?!-))(xn--)?[a-z0-9][a-z0-9-_]{0,61}[a-z0-9]{0,1}\\.(xn--)?([a-z0-9\\-]{1,61}|[a-z0-9-]{1,30}\\.[a-z]{2,})$"))
+		domain = domain.replaceAll("\\s+", "");
+		if (!domain.matches(
+				"^((?!-))(xn--)?[a-z0-9][a-z0-9-_]{0,61}[a-z0-9]{0,1}\\.(xn--)?([a-z0-9\\-]{1,61}|[a-z0-9-]{1,30}\\.[a-z]{2,})$"))
 			throw new BadRequestException("invalid domain name");
 		return domain;
 	}
-	
+
 	public void checkRequest(UserEntity existingOwner, DataBoundary newData) {
 		// Check if the owner is a device
 		if (!existingOwner.getRole().equals(UserRole.DEVICE.name()))

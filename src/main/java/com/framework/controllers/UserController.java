@@ -36,22 +36,22 @@ public class UserController {
 	public void sendOTK(@PathVariable("userEmail") String email) {
 		userService.sendOtkViaEmail(email);
 	}
-	
+
 	@RequestMapping(path = "/users/resetPassword", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public void resetPassword(@RequestBody PasswordBoundary passDetails) {
 		userService.resetPassword(passDetails);
 	}
-	
+
 	@RequestMapping(path = "/users/delete", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public UserBoundary deleteAccount(@RequestBody UserLoginDetails loginDetails) {
 		return userService.deleteAccount(loginDetails);
 	}
-	
+
 	@RequestMapping(path = "/users/getAccount", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public UserBoundary getUserDetails() {
 		return userService.getUserDetails();
 	}
-	
+
 	@RequestMapping(path = "/users/sessionCheck", method = RequestMethod.GET)
 	public void sessionCheck() {
 		userService.sessionCheck();

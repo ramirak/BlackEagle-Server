@@ -42,5 +42,4 @@ public class EventBoundary {
 	public void setEventAttributes(Map<String, Object> eventAttributes) {
 		this.eventAttributes = eventAttributes;
 	}
-
 }

@@ -37,5 +37,4 @@ public class SessionValidationFilter extends OncePerRequestFilter {
 		}
 		doFilter(request, response, filterChain);
 	}
-
 }

@@ -6,7 +6,7 @@ import com.framework.boundaries.PasswordBoundary;
 import com.framework.data.PasswordEntity;
 
 @Component
-public class PasswordEntityConverterImlementation implements EntityConverter<PasswordEntity, PasswordBoundary>{
+public class PasswordEntityConverterImlementation implements EntityConverter<PasswordEntity, PasswordBoundary> {
 
 	@Override
 	public PasswordBoundary toBoundary(PasswordEntity entity) {
@@ -25,5 +25,4 @@ public class PasswordEntityConverterImlementation implements EntityConverter<Pas
 		pe.setPassword(boundary.getPassword());
 		return pe;
 	}
-
 }

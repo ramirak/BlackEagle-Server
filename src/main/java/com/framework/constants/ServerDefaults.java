@@ -8,7 +8,7 @@ public interface ServerDefaults extends ServerTime{
 	ACCOUNT_LOCKDOWN = 3 * minute,
 	OTP_EXPIRED_IN = 2 * minute,
 	MAX_CACHE_SIZE = 1000000,
-	MAX_REQUEST_PER_MINUTE = 30,
+	MAX_REQUEST_PER_MINUTE = 150,
 	
 	// Quota management for future development
 	MAX_STORAGE_FREE_ACCOUNT = 500,
@@ -18,7 +18,6 @@ public interface ServerDefaults extends ServerTime{
 	MAX_NUM_DEVICES_FREE_ACCOUNT = 5,
 	MAX_NUM_DEVICES_PREMIUM_ACCOUNT = 7,
 	MAX_NUM_DEVICES_VIP_ACCOUNT = 10;
-
 			
 	public final boolean 
 	FORCE_EMAIL_VERIFICATION = true,

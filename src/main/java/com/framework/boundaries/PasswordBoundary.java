@@ -6,7 +6,7 @@ public class PasswordBoundary {
 	private String password, optionalPassword;
 	private Date creationTime;
 	private Boolean active;
-	
+
 	public PasswordBoundary() {
 	}
 
@@ -41,8 +41,4 @@ public class PasswordBoundary {
 	public void setOptionalPassword(String optionalPassword) {
 		this.optionalPassword = optionalPassword;
 	}
-	
-	
-	
-	
 }

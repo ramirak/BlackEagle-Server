@@ -14,7 +14,6 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-
 @Entity
 @Table(name = "Events")
 public class EventEntity {
@@ -24,26 +23,25 @@ public class EventEntity {
 	private String type;
 	private Date timeOfEvent;
 	private String eventAttributes;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "event_owner")
 	private UserEntity eventOwner;
 
 	public EventEntity() {
 	}
-	
+
 	public EventEntity(String type, Date timeOfEvent) {
 		this.type = type;
 		this.timeOfEvent = timeOfEvent;
 	}
-	
+
 	public EventEntity(String type, Date timeOfEvent, String eventAttributes) {
 		this.type = type;
 		this.timeOfEvent = timeOfEvent;
 		this.eventAttributes = eventAttributes;
 	}
 
-	
 	public int getId() {
 		return id;
 	}
@@ -103,6 +101,4 @@ public class EventEntity {
 		return Objects.equals(eventAttributes, other.eventAttributes) && Objects.equals(eventOwner, other.eventOwner)
 				&& id == other.id && Objects.equals(timeOfEvent, other.timeOfEvent) && type == other.type;
 	}
-
-
 }

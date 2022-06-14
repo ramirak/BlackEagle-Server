@@ -15,7 +15,7 @@ public class JsonConverterImplementation implements JsonConverter {
 	public void setJackson(ObjectMapper jackson) {
 		this.jackson = jackson;
 	}
-	
+
 	@Override
 	public String mapToJSON(Map<String, Object> value) {
 		try {
@@ -53,5 +53,4 @@ public class JsonConverterImplementation implements JsonConverter {
 			throw new RuntimeException(e);
 		}
 	}
-
 }

@@ -19,7 +19,7 @@ import com.framework.constants.EventType;
 import com.framework.constants.UserRole;
 import com.framework.logic.jpa.EventServiceJpa;
 
-public class PasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter  {
+public class PasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 	private AuthenticationManager authManager;
 	private EventServiceJpa eventJpa;
 
@@ -49,8 +49,9 @@ public class PasswordAuthenticationFilter extends UsernamePasswordAuthentication
 			Authentication authResult) throws IOException, ServletException {
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 		securityContext.setAuthentication(authResult);
-		if (authResult.getAuthorities().contains(new SimpleGrantedAuthority(UserRole.PLAYER.name()))) // Log only events for basic users
+		if (authResult.getAuthorities().contains(new SimpleGrantedAuthority(UserRole.PLAYER.name()))) // Log only events
+																										// for basic
+																										// users
 			eventJpa.createEvent(authResult.getName(), EventType.NEW_LOGIN);
 	}
-	
 }

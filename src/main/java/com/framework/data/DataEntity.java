@@ -33,7 +33,6 @@ public class DataEntity implements Persistable<String>{
 	@JoinColumn(name = "data_owner")
 	private UserEntity dataOwner;
 	
-	
 	public DataEntity() {
 	}
 	
@@ -99,7 +98,6 @@ public class DataEntity implements Persistable<String>{
 				&& Objects.equals(dataOwner, other.dataOwner) && Objects.equals(dataType, other.dataType);
 	}
 	
-
     public boolean isUpdate() {
         return this.update;
     }
@@ -118,6 +116,5 @@ public class DataEntity implements Persistable<String>{
     void markUpdated() {
         this.update = true;
     }
-	
 }
 

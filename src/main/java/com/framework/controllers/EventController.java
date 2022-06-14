@@ -11,17 +11,15 @@ import com.framework.logic.EventService;
 @RestController
 public class EventController {
 	private EventService eventService;
-	
+
 	@Autowired
 	public void setEventService(EventService eventService) {
 		this.eventService = eventService;
 	}
-	
+
 	@RequestMapping(path = "/events/getAll", method = RequestMethod.GET)
-	public EventBoundary[] getAllData(
-			@RequestParam(name = "page", required = false, defaultValue = "0") int page,
+	public EventBoundary[] getAllData(@RequestParam(name = "page", required = false, defaultValue = "0") int page,
 			@RequestParam(name = "size", required = false, defaultValue = "5") int size) {
 		return eventService.getAllData(page, size).toArray(new EventBoundary[0]);
 	}
-	
 }

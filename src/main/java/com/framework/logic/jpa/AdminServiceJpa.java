@@ -88,8 +88,7 @@ public class AdminServiceJpa implements AdminService {
 			existingUser.get().addPassword(pe);
 			emailService.sendEmail(email,
 					"Your new generated password is:\n" + newPassword
-							+ "\nPlease change it when you log into your account." 
-							+ "\n\nBlackEagleServices.",
+							+ "\nPlease change it when you log into your account." + "\n\nBlackEagleServices.",
 					"BlackEagle password reset");
 			userDao.save(existingUser.get());
 		}

@@ -9,6 +9,6 @@ import com.framework.data.EventEntity;
 public interface EventService {
 
 	public EventEntity createEvent(String creator, EventType eventType);
+
 	public List<EventBoundary> getAllData(int page, int size);
-	
 }

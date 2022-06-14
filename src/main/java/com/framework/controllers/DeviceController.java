@@ -34,7 +34,7 @@ public class DeviceController {
 	public UserBoundary deleteDevice(@PathVariable String deviceId) {
 		return deviceService.deleteDevice(deviceId);
 	}
-	
+
 	@RequestMapping(path = "/device/get/{deviceId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public UserBoundary getSpecificDevice(@PathVariable String deviceId) {
 		return deviceService.getSpecificDevice(deviceId);
@@ -45,5 +45,4 @@ public class DeviceController {
 			@RequestParam(name = "size", required = false, defaultValue = "5") int size) {
 		return deviceService.getAllDevices(page, size).toArray(new UserBoundary[0]);
 	}
-
 }

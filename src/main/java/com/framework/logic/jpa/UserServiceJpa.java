@@ -269,12 +269,12 @@ public class UserServiceJpa implements UserService {
 
 	@Override
 	public void sendOtkViaEmail(String userEmail) {
-
 		Optional<UserEntity> existingEntity = userDao.findById(userEmail);
 
 		if (!passwordRules.checkMail(userEmail))
 			throw new InvalidMailException("Invalid mail");
-		// Do not send mail if user does not exist. also, do not notify the user the mail was not found.
+		// Do not send mail if user does not exist. also, do not notify the user the
+		// mail was not found.
 		if (!existingEntity.isEmpty()) {
 			try {
 				boolean isFirstTime = true;
@@ -307,8 +307,7 @@ public class UserServiceJpa implements UserService {
 			throw new WeakPasswordException("Password does not meet the minimum requirenments");
 		if (passwordRules.isPasswordInHistory(passDetails.getPassword(), existingEntity.getPasswords()))
 			throw new WeakPasswordException("Password appears in user history");
-		
-		
+
 		String hashedPass = passwordEncoder.encode(passDetails.getPassword());
 		passDetails.setPassword(hashedPass);
 		passDetails.setCreationTime(new Date());
@@ -322,7 +321,7 @@ public class UserServiceJpa implements UserService {
 				"Your password account was just reset.\nIf you have not requested this operation, "
 						+ "please reset your password and update it as soon as possible.",
 				"Blackeagle Services - Password Reset");
-		
+
 		SecurityContextHolder.getContext().setAuthentication(null);
 		userDao.save(existingEntity);
 	}
@@ -356,8 +355,8 @@ public class UserServiceJpa implements UserService {
 	}
 
 	@Override
-	public void sessionCheck() {	
-		if(!session.hasRole(UserRole.PLAYER.name(), session.retrieveAuthorities()))
+	public void sessionCheck() {
+		if (!session.hasRole(UserRole.PLAYER.name(), session.retrieveAuthorities()))
 			throw new SessionExpiredException();
 	}
 
@@ -370,7 +369,7 @@ public class UserServiceJpa implements UserService {
 		ub.getUserId().setPassword(null);
 		return ub;
 	}
-	
+
 	@Override
 	@Transactional
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -387,6 +386,4 @@ public class UserServiceJpa implements UserService {
 		return new org.springframework.security.core.userdetails.User(ue.getId(),
 				ue.getActivePasswordEntity().getPassword(), grantedAuthorities);
 	}
-
-
 }
